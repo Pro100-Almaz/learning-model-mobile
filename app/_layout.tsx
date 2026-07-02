@@ -77,10 +77,7 @@ const RootLayout = () => {
   const colorScheme = useColorScheme();
 
   return (
-    <ClerkProvider
-      tokenCache={tokenCache}
-      publishableKey={publishableKey}
-      waitlistUrl="http://localhost:8081/">
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ClerkLoaded>
           <QueryClientProvider client={queryClient}>

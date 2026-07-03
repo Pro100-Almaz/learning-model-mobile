@@ -45,3 +45,5 @@ ios/
 android/
 .env
 .env.local
+# JetBrains IDE
+.idea/

@@ -9,7 +9,7 @@ export default function TabLayout() {
       screenOptions={
         process.env.EXPO_OS === 'ios'
           ? {
-              tabBarActiveTintColor: '#0d6c9a',
+              tabBarActiveTintColor: '#480d9a',
               tabBarInactiveTintColor: '#8E8E93',
               headerShown: true,
               tabBarBackground: BlurTabBarBackground,
@@ -18,7 +18,7 @@ export default function TabLayout() {
               },
             }
           : {
-              tabBarActiveTintColor: '#0d6c9a',
+              tabBarActiveTintColor: '#4d13ee',
               tabBarInactiveTintColor: '#8E8E93',
               headerShown: true,
             }
@@ -33,12 +33,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="subjects"
+        options={{
+          title: 'Пәндер',
+          tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
+      
     </Tabs>
   );
 }

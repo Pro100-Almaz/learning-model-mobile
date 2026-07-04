@@ -86,7 +86,12 @@ export function HomeScreen({
       <ScoreHeroCard stats={stats} reduceMotion={reduceMotion} onOpenScores={onOpenScores} />
 
       <View className="flex-row gap-3">
-        <StatCard label="Streak" value={String(stats.streakDays)} unit="күн" icon="flame" />
+        <StatCard 
+          label="Streak" 
+          value={String(stats.streakDays)} 
+          unit="күн" 
+          icon="flame" 
+          />
         <StatCard
           label="ҰБТ-ге дейін"
           value={String(stats.daysUntilExam)}

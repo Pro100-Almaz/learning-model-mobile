@@ -13,6 +13,12 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
+import {
+  Onest_400Regular,
+  Onest_600SemiBold,
+  Onest_800ExtraBold,
+} from '@expo-google-fonts/onest';
 
 if (!publishableKey) {
   throw new Error(
@@ -39,6 +45,10 @@ export const unstable_settings = {
 const InitialLayout = () => {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Nunito_800ExtraBold,
+    Onest_400Regular,
+    Onest_600SemiBold,
+    Onest_800ExtraBold,
   });
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();

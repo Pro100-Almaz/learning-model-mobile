@@ -1,6 +1,7 @@
 import { Slot, Link, usePathname } from 'expo-router';
 
 import { Text, View } from 'react-native';
+import OnboardingGate from '@/components/OnboardingGate';
 
 function AppHeader() {
   const pathname = usePathname();
@@ -26,9 +27,11 @@ function AppHeader() {
 
 export default function Layout() {
   return (
-    <View className="flex-1">
-      <AppHeader />
-      <Slot />
-    </View>
+    <OnboardingGate>
+      <View className="flex-1">
+        <AppHeader />
+        <Slot />
+      </View>
+    </OnboardingGate>
   );
 }

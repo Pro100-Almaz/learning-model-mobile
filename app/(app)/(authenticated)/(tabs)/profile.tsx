@@ -1,9 +1,16 @@
 import { View, Text, Button, Image, ScrollView } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
 
 const Page = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace('/login');
+  };
 
   return (
     <View className="flex-1 bg-white p-4">
@@ -20,7 +27,7 @@ const Page = () => {
           </View>
         </View>
 
-        <Button title="Sign Out" onPress={() => signOut()} color="#FF3B30" />
+        <Button title="Sign Out" onPress={handleSignOut} color="#FF3B30" />
       </ScrollView>
     </View>
   );

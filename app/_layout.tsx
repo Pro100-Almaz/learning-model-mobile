@@ -11,6 +11,7 @@ import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@/utils/cache';
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ApiError } from '@/lib/api';
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
@@ -34,6 +35,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 60 * 1000,
+      // Don't hammer the backend on client errors (401/403/404 etc.) — an auth
+      // failure like "could not resolve user" is not transient, so retrying just
+      // spams the endpoint. Retry only genuine transient failures (network /
+      // timeout → ApiError status 0, or 5xx), and cap it.
+      retry: (failureCount, error) => {
+        const status = error instanceof ApiError ? error.status : undefined;
+        if (status !== undefined && status >= 400 && status < 500) return false;
+        return failureCount < 2;
+      },
     },
   },
 });

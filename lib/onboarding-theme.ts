@@ -19,6 +19,8 @@ export const COLORS = {
   blue700: '#1A45BE',
   teal500: '#15C7A9',
   amber500: '#FFB020',
+  success50: '#E7F8EF',
+  success500: '#16B364',
   ink900: '#0E1526',
   ink700: '#33405C',
   ink500: '#64708C',

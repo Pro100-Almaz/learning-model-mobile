@@ -36,6 +36,8 @@ export default function TabLayout() {
         name="subjects"
         options={{
           title: 'Пәндер',
+          // The nested learn Stack renders its own ScreenHeader on each screen.
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
         }}
       />

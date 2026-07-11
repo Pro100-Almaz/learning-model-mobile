@@ -7,6 +7,9 @@ import { createApiClient, type ApiClient } from '@/lib/api';
  * makes fetches a fresh token via Clerk's `getToken`.
  */
 export function useApiClient(): ApiClient {
-  const { getToken } = useAuth();
-  return useMemo(() => createApiClient(() => getToken()), [getToken]);
+  const { getToken, signOut } = useAuth();
+  return useMemo(
+    () => createApiClient((opts) => getToken(opts), () => signOut()),
+    [getToken, signOut]
+  );
 }

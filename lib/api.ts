@@ -11,7 +11,19 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 // request rejects and callers can show an error/retry instead.
 const REQUEST_TIMEOUT_MS = 15000;
 
-export type GetToken = () => Promise<string | null>;
+// How many times we send the token before giving up. On an auth failure the
+// backend rejected the token, so we refetch a fresh one and resend; after this
+// many failed attempts we force a logout (see `onAuthFailure`).
+const MAX_AUTH_ATTEMPTS = 3;
+
+// Statuses that mean "the token was rejected" — the only errors worth resending
+// a fresh token for. Everything else (404/500/network) fails immediately.
+const AUTH_FAILURE_STATUSES = new Set([401, 403]);
+
+// `skipCache` forces Clerk to mint a brand-new token instead of returning the
+// cached (and just-rejected) one — otherwise every retry would resend the same
+// failing token.
+export type GetToken = (opts?: { skipCache?: boolean }) => Promise<string | null>;
 
 /** Thrown for any non-2xx response; carries the HTTP status for callers. */
 export class ApiError extends Error {
@@ -55,15 +67,27 @@ export interface ApiClient {
   post<T>(path: string, body: unknown): Promise<T>;
 }
 
-export function createApiClient(getToken: GetToken): ApiClient {
+/**
+ * Called after {@link MAX_AUTH_ATTEMPTS} consecutive auth failures on a single
+ * request — i.e. the session's token keeps being rejected. Wire this to Clerk's
+ * `signOut` so the user is returned to the sign-in screen.
+ */
+export type OnAuthFailure = () => void | Promise<void>;
+
+export function createApiClient(getToken: GetToken, onAuthFailure?: OnAuthFailure): ApiClient {
   if (!BASE_URL) {
     throw new Error(
       'Missing EXPO_PUBLIC_API_BASE_URL. Set it in your .env (see DUMMY.env).'
     );
   }
 
-  async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const token = await getToken();
+  // Send the token once. `skipCache` forces a fresh token for retries.
+  async function attempt<T>(
+    path: string,
+    init: RequestInit | undefined,
+    skipCache: boolean
+  ): Promise<T> {
+    const token = await getToken(skipCache ? { skipCache: true } : undefined);
 
     // Dev-only: confirm whether Clerk actually handed us a token. If this logs
     // `token: none`, the problem is client-side (no active session); if it logs
@@ -119,6 +143,33 @@ export function createApiClient(getToken: GetToken): ApiClient {
       throw new ApiError(res.status, errorMessage(res.status, body), body);
     }
     return body as T;
+  }
+
+  async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    let lastError: ApiError | undefined;
+
+    for (let n = 1; n <= MAX_AUTH_ATTEMPTS; n++) {
+      try {
+        // First send uses Clerk's cached token; retries force a fresh one.
+        return await attempt<T>(path, init, n > 1);
+      } catch (err) {
+        // Only an auth rejection is worth resending a fresh token for. Any other
+        // failure (network, 404, 500, …) is not fixable by retrying, so bail.
+        if (!(err instanceof ApiError) || !AUTH_FAILURE_STATUSES.has(err.status)) {
+          throw err;
+        }
+        lastError = err;
+        if (__DEV__) {
+          console.warn(`[api] auth attempt ${n}/${MAX_AUTH_ATTEMPTS} for ${path} → ${err.status}`);
+        }
+      }
+    }
+
+    if (__DEV__) {
+      console.warn(`[api] ${MAX_AUTH_ATTEMPTS} auth failures for ${path} — signing out`);
+    }
+    await onAuthFailure?.();
+    throw lastError;
   }
 
   return {

@@ -2,13 +2,12 @@ import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 
 import { SubjectsScreen } from '@/components/learn/screens/SubjectsScreen';
-import { useMockLoading } from '@/hooks/useMockLoading';
-import { getSubjects } from '@/lib/learn';
+import { useSubjects } from '@/hooks/useSubjects';
 
 /** Subjects tab root. See docs/subject_lesson_pages.md. */
 export default function SubjectsRoute() {
   const router = useRouter();
-  const isLoading = useMockLoading();
+  const { data: subjects, isLoading } = useSubjects();
 
   const onOpenSubject = useCallback(
     (subjectId: string) => {
@@ -18,6 +17,6 @@ export default function SubjectsRoute() {
   );
 
   return (
-    <SubjectsScreen subjects={getSubjects()} isLoading={isLoading} onOpenSubject={onOpenSubject} />
+    <SubjectsScreen subjects={subjects ?? []} isLoading={isLoading} onOpenSubject={onOpenSubject} />
   );
 }

@@ -26,9 +26,7 @@ export function useUpdateProfile() {
     // Dev bypass: pretend the save succeeded and mark onboarding complete so the
     // flow finishes and routes home, without touching the backend.
     mutationFn: (payload: ProfileUpdate) =>
-      DEV_BYPASS_AUTH
-        ? Promise.resolve<Profile>({ ...payload, onboarding_completed: true })
-        : api.patch<Profile>('/profile/', payload),
+      api.patch<Profile>('/profile/', payload),
     onSuccess: (profile) => {
       // Seed the cache so the route guard sees the completed flag immediately.
       queryClient.setQueryData(profileQueryKey, profile);

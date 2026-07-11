@@ -1,38 +1,42 @@
 import { FlatList, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import type { ClassLevel, Unit } from '@/lib/learn';
+import type { ClassLevel, Module } from '@/lib/learn';
 import { type BreadcrumbItem } from '../Breadcrumb';
 import { ClassSummaryCard } from '../ClassSummaryCard';
 import { LearnEmptyState } from '../LearnEmptyState';
+import { MockTestCTA } from '../MockTestCTA';
 import { ScreenHeader } from '../ScreenHeader';
 import { SkeletonList } from '../SkeletonCard';
-import { UnitCard } from '../UnitCard';
+import { ModuleCard } from '../ModuleCard';
 
-interface UnitsScreenProps {
+interface ModulesScreenProps {
   cls: ClassLevel;
   title: string;
-  units: Unit[];
+  modules: Module[];
   isLoading: boolean;
   breadcrumb: BreadcrumbItem[];
   onBack: () => void;
   onCrumb: (pop: number) => void;
-  onOpenUnit: (unitId: string) => void;
+  onOpenModule: (moduleId: string) => void;
+  onTest: () => void;
 }
 
-/** Class-progress summary + numbered unit list. See docs/subject_lesson_pages.md §1. */
-export function UnitsScreen({
+/** Class-progress summary + numbered module list. See docs/subject_lesson_pages.md §1. */
+export function ModulesScreen({
   cls,
   title,
-  units,
+  modules,
   isLoading,
   breadcrumb,
   onBack,
   onCrumb,
-  onOpenUnit,
-}: UnitsScreenProps) {
+  onOpenModule,
+  onTest,
+}: ModulesScreenProps) {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -47,9 +51,9 @@ export function UnitsScreen({
         </View>
       ) : (
         <FlatList
-          data={units}
+          data={modules}
           keyExtractor={(u) => u.id}
-          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: tabBarHeight + 84 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View className="mb-2">
@@ -64,10 +68,12 @@ export function UnitsScreen({
             />
           }
           renderItem={({ item, index }) => (
-            <UnitCard unit={item} index={index} onPress={() => onOpenUnit(item.id)} />
+            <ModuleCard module={item} index={index} onPress={() => onOpenModule(item.id)} />
           )}
         />
       )}
+
+      <MockTestCTA onPress={onTest} />
     </View>
   );
 }

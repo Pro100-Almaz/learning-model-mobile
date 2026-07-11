@@ -1,23 +1,28 @@
-import { ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { SHADOW_SOFT } from '@/lib/onboarding-theme';
-import { lessonDetailMeta, type LessonDetail } from '@/lib/learn';
-import { type BreadcrumbItem } from '../Breadcrumb';
-import { ConceptList } from '../ConceptList';
-import { ProgressRing } from '../ProgressRing';
-import { ScreenHeader } from '../ScreenHeader';
-import { StickyActions } from '../StickyActions';
-import { VideoPlaceholder } from '../VideoPlaceholder';
+import { ScrollView, Text, View } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { SHADOW_SOFT } from "@/lib/onboarding-theme";
+import {
+  lessonDetailMeta,
+  videoEmbedUrl,
+  videoThumbnail,
+  type LessonDetail,
+} from "@/lib/learn";
+import { type BreadcrumbItem } from "../Breadcrumb";
+import { LessonVideo } from "../LessonVideo";
+import { TagList } from "../TagList";
+import { ProgressRing } from "../ProgressRing";
+import { ScreenHeader } from "../ScreenHeader";
+import { StickyActions } from "../StickyActions";
+import { VideoPlaceholder } from "../VideoPlaceholder";
 
 interface LessonDetailScreenProps {
   lesson: LessonDetail;
   breadcrumb: BreadcrumbItem[];
   onBack: () => void;
   onCrumb: (pop: number) => void;
-  onPractice: () => void;
-  onStart: () => void;
+  onTest: () => void;
 }
 
 /**
@@ -29,50 +34,79 @@ export function LessonDetailScreen({
   breadcrumb,
   onBack,
   onCrumb,
-  onPractice,
-  onStart,
+  onTest,
 }: LessonDetailScreenProps) {
-  const insets = useSafeAreaInsets();
+  const embedUrl = videoEmbedUrl(lesson.videoUrl, lesson.provider);
+  const poster = videoThumbnail(lesson.videoUrl, lesson.provider);
+  const tabBarHeight = useBottomTabBarHeight();
   const reduceMotion = useReducedMotion();
-  const started = lesson.progress > 0 || lesson.currentStep > 0;
+  const started = lesson.progress > 0;
+  const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-surface-app">
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
-        <ScreenHeader title={lesson.title} onBack={onBack} breadcrumb={breadcrumb} onCrumb={onCrumb} />
+        <ScreenHeader
+          title={lesson.title}
+          onBack={onBack}
+          breadcrumb={breadcrumb}
+          onCrumb={onCrumb}
+        />
       </View>
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 96 }}
-        showsVerticalScrollIndicator={false}>
+        contentContainerStyle={{
+          padding: 16,
+          gap: 16,
+          paddingBottom: tabBarHeight + 96,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="gap-1">
           <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-blue-600">
             Сабақ
           </Text>
-          <Text className="font-display text-[28px] leading-tight text-ink-900">{lesson.title}</Text>
-          <Text className="text-[13px] text-ink-500">{lessonDetailMeta(lesson)}</Text>
+          <Text className="font-display text-[28px] leading-tight text-ink-900">
+            {lesson.title}
+          </Text>
+          <Text className="text-[13px] text-ink-500">
+            {lessonDetailMeta(lesson)}
+          </Text>
         </View>
 
-        <VideoPlaceholder videoUrl={lesson.videoUrl} onPress={onStart} />
+        {embedUrl ? (
+          <LessonVideo
+            embedUrl={embedUrl}
+            provider={lesson.provider}
+            poster={poster}
+          />
+        ) : (
+          <VideoPlaceholder videoUrl={lesson.videoUrl} />
+        )}
 
         {started ? (
           <View
             style={SHADOW_SOFT}
-            className="flex-row items-center gap-4 rounded-lg bg-white p-4">
+            className="flex-row items-center gap-4 rounded-lg bg-white p-4"
+          >
             <ProgressRing
               value={lesson.progress}
               size={72}
               stroke={8}
               reduceMotion={reduceMotion}
               centerValue={
-                <Text className="font-display text-[16px] text-ink-900">{lesson.progress}%</Text>
+                <Text className="font-display text-[16px] text-ink-900">
+                  {lesson.progress}%
+                </Text>
               }
             />
             <View className="flex-1 gap-0.5">
-              <Text className="font-bodyBold text-base text-ink-900">Жалғастыруға дайынсың</Text>
+              <Text className="font-bodyBold text-base text-ink-900">
+                Жалғастыруға дайынсың
+              </Text>
               <Text className="text-[13px] text-ink-500">
-                {lesson.currentStep}/{lesson.steps} қадам аяқталды
+                {lesson.progress}% аяқталды
               </Text>
             </View>
           </View>
@@ -80,16 +114,22 @@ export function LessonDetailScreen({
 
         <View className="gap-2">
           <Text className="font-display text-xl text-ink-900">Қысқаша</Text>
-          <Text className="text-[14px] leading-6 text-ink-700">{lesson.intro}</Text>
+          <Text className="text-[14px] leading-6 text-ink-700">
+            {lesson.description}
+          </Text>
         </View>
 
-        <View className="gap-2">
-          <Text className="font-display text-xl text-ink-900">Негізгі ұғымдар</Text>
-          <ConceptList concepts={lesson.concepts} />
-        </View>
+        {lesson.tags.length > 0 ? (
+          <View className="gap-2">
+            <Text className="font-display text-xl text-ink-900">
+              Негізгі ұғымдар
+            </Text>
+            <TagList tags={lesson.tags} />
+          </View>
+        ) : null}
       </ScrollView>
 
-      <StickyActions started={started} onPractice={onPractice} onStart={onStart} />
+      <StickyActions onTest={onTest} />
     </View>
   );
 }

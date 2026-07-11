@@ -1,0 +1,14 @@
+{
+  "_default": { "icon": "book-outline", "tint": "#2F6BFF", "soft": "#EEF3FF" },
+  "math": { "icon": "calculator-outline", "tint": "#2F6BFF", "soft": "#EEF3FF" },
+  "math-literacy": { "icon": "calculator-outline", "tint": "#2F6BFF", "soft": "#EEF3FF" },
+  "physics": { "icon": "planet-outline", "tint": "#15C7A9", "soft": "#E6FBF6" },
+  "chemistry": { "icon": "flask-outline", "tint": "#FFB020", "soft": "#FFF5E1" },
+  "biology": { "icon": "leaf-outline", "tint": "#16B364", "soft": "#E7F8EF" },
+  "english": { "icon": "language-outline", "tint": "#7C5CFF", "soft": "#F0EDFF" },
+  "history-of-kazakhstan": { "icon": "book-outline", "tint": "#E5484D", "soft": "#FDEBEC" },
+  "history": { "icon": "book-outline", "tint": "#E5484D", "soft": "#FDEBEC" },
+  "geography": { "icon": "earth-outline", "tint": "#0EA5E9", "soft": "#E6F6FE" },
+  "informatics": { "icon": "laptop-outline", "tint": "#6366F1", "soft": "#EEEFFE" },
+  "reading-literacy": { "icon": "reader-outline", "tint": "#EC4899", "soft": "#FDECF5" }
+}

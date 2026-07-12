@@ -33,6 +33,7 @@ export interface Profile {
   target_university: number | null;
   target_specialty: number | null;
   target_score: number | null;
+  subjects: string[];
   expected_scores: ExpectedScore[];
   onboarding_completed: boolean;
 }

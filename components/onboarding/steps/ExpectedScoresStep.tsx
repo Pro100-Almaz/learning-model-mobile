@@ -6,7 +6,10 @@ import { StepHeader } from '../StepHeader';
 import { ScoreSlider } from '../ScoreSlider';
 
 interface ExpectedScoresStepProps {
+  /** Subject slugs — the stable identity used for scoring/persistence. */
   subjects: string[];
+  /** slug → display name (from the /subjects/all/ catalog). */
+  subjectNames: Record<string, string>;
   /** Current score per subject (always a number once seeded). */
   expectedMap: Record<string, number>;
   onScore: (subject: string, value: number) => void;
@@ -17,6 +20,7 @@ interface ExpectedScoresStepProps {
 /** Step: per-subject expected scores via sliders, with a running total. */
 export function ExpectedScoresStep({
   subjects,
+  subjectNames,
   expectedMap,
   onScore,
   currentTotal,
@@ -51,13 +55,14 @@ export function ExpectedScoresStep({
 
           <View className="gap-5">
             {subjects.map((subject) => {
-              const max = subjectMax(subject);
+              const name = subjectNames[subject] ?? subject;
+              const max = subjectMax(name);
               const value = expectedMap[subject] ?? 0;
               return (
                 <View key={subject}>
                   <View className="flex-row items-center justify-between">
                     <Text className="flex-1 pr-3 font-bodyBold text-sm text-ink-900">
-                      {subject}
+                      {name}
                     </Text>
                     <Text className="font-display text-[19px] leading-[30px] text-blue-500">
                       {value}

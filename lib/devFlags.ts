@@ -21,6 +21,7 @@ export const MOCK_PROFILE: Profile = {
   target_university: null,
   target_specialty: null,
   target_score: null,
+  subjects: [],
   expected_scores: [],
   onboarding_completed: false,
 };

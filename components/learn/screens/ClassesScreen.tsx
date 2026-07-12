@@ -5,6 +5,7 @@ import type { ClassLevel, Subject } from '@/lib/learn';
 import { type BreadcrumbItem } from '../Breadcrumb';
 import { ClassCard } from '../ClassCard';
 import { LearnEmptyState } from '../LearnEmptyState';
+import { MockTestCTA } from '../MockTestCTA';
 import { ScreenHeader } from '../ScreenHeader';
 import { SkeletonList } from '../SkeletonCard';
 
@@ -16,6 +17,7 @@ interface ClassesScreenProps {
   onBack: () => void;
   onCrumb: (pop: number) => void;
   onOpenClass: (classId: string) => void;
+  onTest: () => void;
 }
 
 /** List of class levels for a subject. See docs/subject_lesson_pages.md §1. */
@@ -27,6 +29,7 @@ export function ClassesScreen({
   onBack,
   onCrumb,
   onOpenClass,
+  onTest,
 }: ClassesScreenProps) {
   const insets = useSafeAreaInsets();
 
@@ -49,7 +52,7 @@ export function ClassesScreen({
         <FlatList
           data={classes}
           keyExtractor={(c) => c.id}
-          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 96 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <LearnEmptyState
@@ -63,6 +66,8 @@ export function ClassesScreen({
           )}
         />
       )}
+
+      {<MockTestCTA onPress={onTest} />}
     </View>
   );
 }

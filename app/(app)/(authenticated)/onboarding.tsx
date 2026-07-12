@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -19,6 +19,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 import { useProfile } from '@/hooks/useProfile';
 import { useOnboardingOptions, useUpdateProfile } from '@/hooks/useOnboarding';
+import { useAllSubjects } from '@/hooks/useSubjects';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ENT_MAX_SCORE, subjectMax } from '@/lib/ent';
 import { isStepTargetValid, isStepScoresValid } from '@/lib/onboarding-validation';
@@ -37,9 +38,11 @@ export default function Onboarding() {
 
   const optionsQuery = useOnboardingOptions();
   const profileQuery = useProfile();
+  const allSubjectsQuery = useAllSubjects();
   const updateProfile = useUpdateProfile();
 
-  const isLoading = optionsQuery.isPending || profileQuery.isPending;
+  const isLoading =
+    optionsQuery.isPending || profileQuery.isPending || allSubjectsQuery.isPending;
   const isError = optionsQuery.isError || profileQuery.isError;
   const error = optionsQuery.error ?? profileQuery.error;
   const isSubmitting = updateProfile.isPending;
@@ -58,6 +61,24 @@ export default function Onboarding() {
     [optionsQuery.data]
   );
 
+  // Onboarding options give us subject *slugs*; the full catalog (/subjects/all/)
+  // gives each slug a human name. Resolve slug → name for display and for
+  // subjectMax(), which is keyed by name. Falls back to the slug if unresolved.
+  const subjectNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const s of allSubjectsQuery.data ?? []) map[s.slug] = s.title;
+    return map;
+  }, [allSubjectsQuery.data]);
+
+  const subjectName = useCallback(
+    (slug: string) => subjectNames[slug] ?? slug,
+    [subjectNames]
+  );
+  const maxFor = useCallback(
+    (slug: string) => subjectMax(subjectName(slug)),
+    [subjectName]
+  );
+
   // One-shot seed from an existing profile (or sensible defaults) once both
   // queries have settled. Sliders always need a concrete value, so unseeded
   // subjects default to ~60% of their max.
@@ -73,8 +94,8 @@ export default function Onboarding() {
       const fromProfile = profScores.get(s);
       seeded[s] =
         typeof fromProfile === 'number'
-          ? clamp(fromProfile, 0, subjectMax(s))
-          : Math.round(subjectMax(s) * 0.6);
+          ? clamp(fromProfile, 0, maxFor(s))
+          : Math.round(maxFor(s) * 0.6);
     }
     setExpectedMap(seeded);
 
@@ -136,8 +157,8 @@ export default function Onboarding() {
   // ────────────────── Derived values ──────────────────
 
   const maxTotal = useMemo(
-    () => subjects.reduce((sum, s) => sum + subjectMax(s), 0),
-    [subjects]
+    () => subjects.reduce((sum, s) => sum + maxFor(s), 0),
+    [subjects, maxFor]
   );
   const expectedTotal = useMemo(
     () => subjects.reduce((sum, s) => sum + (expectedMap[s] ?? 0), 0),
@@ -263,6 +284,7 @@ export default function Onboarding() {
           />
           <ExpectedScoresStep
             subjects={subjects}
+            subjectNames={subjectNames}
             expectedMap={expectedMap}
             onScore={onScore}
             currentTotal={expectedTotal}

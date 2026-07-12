@@ -1,6 +1,5 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
 import { classSubtitle, type ClassLevel } from '@/lib/learn';
@@ -12,7 +11,6 @@ interface ClassCardProps {
   onPress: () => void;
 }
 
-/** Full-width row: grade title, units·lessons, progress badge + bar. */
 export function ClassCard({ cls, onPress }: ClassCardProps) {
   const isDone = cls.progress >= 100;
 

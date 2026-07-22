@@ -47,6 +47,7 @@ export interface Lesson {
   durationSec: number;
   status: LessonStatus;
   progress: Progress;
+  mastery: number | null;
 }
 
 export interface LessonDetail extends Lesson {

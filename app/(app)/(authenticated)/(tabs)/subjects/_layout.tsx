@@ -14,6 +14,7 @@ export default function SubjectsStackLayout() {
       <Stack.Screen name="lessons" />
       <Stack.Screen name="lesson" />
       <Stack.Screen name="test" />
+      <Stack.Screen name="exam" />
     </Stack>
   );
 }

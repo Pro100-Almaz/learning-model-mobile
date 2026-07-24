@@ -21,6 +21,10 @@ interface LessonsScreenProps {
   onTest: () => void;
 }
 
+function hasMasteryTest(lessons: Lesson[]): boolean {
+  return lessons.some((lesson) => lesson.mastery !== null);
+}
+
 /** Module summary + status-driven lesson list. See docs/subject_lesson_pages.md §1. */
 export function LessonsScreen({
   module,
@@ -78,7 +82,9 @@ export function LessonsScreen({
         />
       )}
 
-      <MockTestCTA onPress={onTest} />
+      {!hasMasteryTest(lessons) && (
+      <MockTestCTA onPress={onTest} label='Модуль бойынша тест' />
+      )}
     </View>
   );
 }

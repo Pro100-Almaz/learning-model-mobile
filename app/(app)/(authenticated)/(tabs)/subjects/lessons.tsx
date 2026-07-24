@@ -11,7 +11,7 @@ import { useLessons } from '@/hooks/useLessons';
 import { subjectById, classById, moduleById } from '@/lib/learn';
 
 const LESSON = '/(app)/(authenticated)/(tabs)/subjects/lesson' as const;
-const TEST = '/(app)/(authenticated)/(tabs)/subjects/test' as const;
+const EXAM = '/(app)/(authenticated)/(tabs)/subjects/exam' as const;
 
 /** Lessons for a module. See docs/subject_lesson_pages.md §3. */
 export default function LessonsRoute() {
@@ -39,8 +39,8 @@ export default function LessonsRoute() {
 
   const onTest = useCallback(() => {
     router.push({
-      pathname: TEST,
-      params: { title: module?.title ?? 'Тест', scope: `${subjectId}:${classId}:${moduleId}` },
+      pathname: EXAM,
+      params: { title: module?.title ?? 'Модуль бойынша тест', subjectId, classId, moduleId },
     });
   }, [router, subjectId, classId, moduleId, module?.title]);
 

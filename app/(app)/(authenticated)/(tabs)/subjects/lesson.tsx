@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 import { LessonDetailScreen } from '@/components/learn/screens/LessonDetailScreen';
@@ -22,24 +23,35 @@ export default function LessonRoute() {
   }>();
   const { router, back, popScreens } = useLearnNav();
 
-  const { data: subjects } = useSubjects();
-  const { data: classes } = useClasses(subjectId);
-  const { data: modules } = useModules(classId)
+  const { data: subjects, isLoading: subjectsLoading } = useSubjects();
+  const { data: classes, isLoading: classesLoading } = useClasses(subjectId);
+  const { data: modules, isLoading: modulesLoading } = useModules(classId);
   const subject = subjectById(subjects ?? [], subjectId);
   const cls = classById(classes ?? [], classId);
   const module = moduleById(modules ?? [], moduleId);
-  const { data: lesson } = useLessonDetail(lessonId);
+  const { data: lesson, isLoading: lessonLoading } = useLessonDetail(lessonId);
 
   const onTest = useCallback(() => {
     router.push({
       pathname: TEST,
       params: {
         title: lesson?.title ?? 'Тест',
-        scope: `${subjectId}:${classId}:${moduleId}:${lessonId}`,
+        lessonId,
       },
     });
   }, [router, subjectId, classId, moduleId, lessonId, lesson?.title]);
 
+  // Show a spinner while any query is still loading — otherwise a not-yet-resolved
+  // id looks identical to a genuinely missing one and we'd flash "Not found".
+  if (subjectsLoading || classesLoading || modulesLoading || lessonLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-app">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // Loading has settled: a falsy value now means the id really didn't resolve.
   if (!subject || !cls || !module || !lesson) return <MissingScreen onBack={back} />;
 
   return (

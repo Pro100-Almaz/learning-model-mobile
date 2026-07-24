@@ -73,7 +73,7 @@ export function ModulesScreen({
         />
       )}
 
-      <MockTestCTA onPress={onTest} />
+      {/* <MockTestCTA onPress={onTest} /> */}
     </View>
   );
 }

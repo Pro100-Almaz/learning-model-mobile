@@ -67,7 +67,7 @@ export function ClassesScreen({
         />
       )}
 
-      {<MockTestCTA onPress={onTest} />}
+      {/* {<MockTestCTA onPress={onTest} />} */}
     </View>
   );
 }

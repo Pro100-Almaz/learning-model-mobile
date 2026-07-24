@@ -16,6 +16,7 @@ interface LessonApi {
   duration_sec: number;
   status: LessonStatus;
   progress: Progress;
+  mastery: number | null;
 }
 
 interface LessonDetailApi extends LessonApi {
@@ -33,6 +34,7 @@ function toLesson(r: LessonApi): Lesson {
     durationSec: r.duration_sec,
     status: r.status,
     progress: r.progress,
+    mastery: r.mastery,
   };
 }
 

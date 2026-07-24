@@ -1,98 +1,193 @@
-// Mock testing content. Each scope (subject → class → module → lesson) launches a
-// 10-question MCQ mock test. Content is demo/mock today — swap `getMockTest` for a
-// React-Query hook (useMockTest(scope)) later without touching the screen; the
-// shapes model a typical quiz API.
-
-export interface MockQuestion {
-  id: string;
-  prompt: string;
-  /** 4 answer choices; index in this array is the answer id. */
-  options: string[];
-  /** Index into `options` of the correct answer. */
-  correctIndex: number;
+export interface TestOptionApi {
+  id: number;
+  text: string;
 }
 
-/** A single mock question's user answer: chosen option index, or null. */
-export type MockAnswer = number | null;
-
-// --- Mock / demo content -----------------------------------------------------
-
-const QUESTIONS: MockQuestion[] = [
-  {
-    id: 'q1',
-    prompt: '2x + 6 = 14 теңдеуінің шешімі неге тең?',
-    options: ['x = 2', 'x = 4', 'x = 6', 'x = 8'],
-    correctIndex: 1,
-  },
-  {
-    id: 'q2',
-    prompt: '25-тің квадрат түбірі неге тең?',
-    options: ['4', '5', '6', '625'],
-    correctIndex: 1,
-  },
-  {
-    id: 'q3',
-    prompt: 'Үшбұрыштың ішкі бұрыштарының қосындысы неге тең?',
-    options: ['90°', '180°', '270°', '360°'],
-    correctIndex: 1,
-  },
-  {
-    id: 'q4',
-    prompt: '3² + 4² өрнегінің мәні?',
-    options: ['7', '12', '25', '49'],
-    correctIndex: 2,
-  },
-  {
-    id: 'q5',
-    prompt: '120 санының 25%-ы неге тең?',
-    options: ['24', '30', '36', '48'],
-    correctIndex: 1,
-  },
-  {
-    id: 'q6',
-    prompt: 'f(x) = 2x + 1 функциясы үшін f(3) неге тең?',
-    options: ['5', '6', '7', '9'],
-    correctIndex: 2,
-  },
-  {
-    id: 'q7',
-    prompt: 'Радиусы 5 болатын шеңбердің диаметрі?',
-    options: ['2.5', '5', '10', '25'],
-    correctIndex: 2,
-  },
-  {
-    id: 'q8',
-    prompt: '(a + b)² өрнегін жайғанда қайсысы дұрыс?',
-    options: ['a² + b²', 'a² + 2ab + b²', 'a² − 2ab + b²', '2a + 2b'],
-    correctIndex: 1,
-  },
-  {
-    id: 'q9',
-    prompt: '2, 4, 8, 16, … тізбегінің келесі мүшесі?',
-    options: ['18', '24', '32', '64'],
-    correctIndex: 2,
-  },
-  {
-    id: 'q10',
-    prompt: 'sin(30°) неге тең?',
-    options: ['0', '0.5', '√2 / 2', '1'],
-    correctIndex: 1,
-  },
-];
-
-// --- Selector ----------------------------------------------------------------
-// Content is scope-agnostic for now; the `scope` arg is accepted so the call
-// sites already pass what a real API would key on (subject/class/module/lesson).
-
-/** Returns the 10 mock questions for a given scope key. */
-export function getMockTest(_scope?: string): MockQuestion[] {
-  return QUESTIONS;
+export interface TestQuestionApi {
+  id: number;
+  text: string;
+  image: string | null;
+  options: TestOptionApi[];
 }
 
-/** Number of correct answers for a filled-in answer sheet. */
-export function scoreMockTest(questions: MockQuestion[], answers: MockAnswer[]): number {
-  return questions.reduce(
-    (acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0),
-    0
-  );
+export interface TestMetaApi {
+  id: number;
+  type: string;
+  title: string;
+  time_limit_sec: number | null;
+  question_count: number;
+}
+
+export interface TestAttemptApi {
+  attempt_id: number;
+  test: TestMetaApi;
+  started_at: string;
+  questions: TestQuestionApi[];
+}
+
+export interface SubmitAnswerApi {
+  question_id: number;
+  option_id: number | null;
+}
+
+export interface TestResultApi {
+  attempt_id: number;
+  score: number;
+  correct_count: number;
+  total_count: number;
+  finished_at: string;
+}
+
+/** One option in a review item; `is_correct` marks the right answer(s). */
+export interface ReviewOptionApi {
+  id: number;
+  text: string;
+  is_correct: boolean;
+}
+
+/** One reviewed question with the user's choice and the explanation. */
+export interface ReviewItemApi {
+  question_id: number;
+  question_text: string;
+  selected_option_id: number | null;
+  correct_option_id: number | null;
+  is_correct: boolean;
+  explanation: string;
+  /** Optional diagnosis of the student's likely error; "" when none. */
+  mistake_reason: string;
+  options: ReviewOptionApi[];
+}
+
+/** Response from GET /attempts/{id}/review/ — the post-submit answer key. */
+export interface TestReviewApi {
+  attempt_id: number;
+  score: number;
+  items: ReviewItemApi[];
+}
+
+export interface TestOption {
+  id: number;
+  text: string;
+}
+
+export interface TestQuestion {
+  id: number;
+  text: string;
+  image: string | null;
+  options: TestOption[];
+}
+
+export interface TestAttempt {
+  attemptId: number;
+  test: {
+    id: number;
+    type: string;
+    title: string;
+    timeLimitSec: number | null;
+    questionCount: number;
+  };
+  startedAt: string;
+  questions: TestQuestion[];
+}
+
+export interface TestResult {
+  attemptId: number;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  finishedAt: string;
+}
+
+export interface ReviewOption {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ReviewItem {
+  questionId: number;
+  questionText: string;
+  selectedOptionId: number | null;
+  correctOptionId: number | null;
+  isCorrect: boolean;
+  explanation: string;
+  /** Optional diagnosis of the student's likely error; "" when none. */
+  mistakeReason: string;
+  options: ReviewOption[];
+}
+
+export interface TestReview {
+  attemptId: number;
+  score: number;
+  items: ReviewItem[];
+}
+
+/**
+ * The user's in-progress answer sheet: the chosen option id per question, keyed
+ * by question id. `null` means unanswered.
+ */
+export type AnswerSheet = Record<number, number | null>;
+
+// --- Normalizers -------------------------------------------------------------
+
+export function toTestAttempt(r: TestAttemptApi): TestAttempt {
+  return {
+    attemptId: r.attempt_id,
+    test: {
+      id: r.test.id,
+      type: r.test.type,
+      title: r.test.title,
+      timeLimitSec: r.test.time_limit_sec,
+      questionCount: r.test.question_count,
+    },
+    startedAt: r.started_at,
+    questions: r.questions.map((q) => ({
+      id: q.id,
+      text: q.text,
+      image: q.image,
+      options: q.options.map((o) => ({ id: o.id, text: o.text })),
+    })),
+  };
+}
+
+export function toTestResult(r: TestResultApi): TestResult {
+  return {
+    attemptId: r.attempt_id,
+    score: r.score,
+    totalCount: r.total_count,
+    correctCount: r.correct_count,
+    finishedAt: r.finished_at,
+  };
+}
+
+export function toTestReview(r: TestReviewApi): TestReview {
+  return {
+    attemptId: r.attempt_id,
+    score: r.score,
+    items: r.items.map((it) => ({
+      questionId: it.question_id,
+      questionText: it.question_text,
+      selectedOptionId: it.selected_option_id,
+      correctOptionId: it.correct_option_id,
+      isCorrect: it.is_correct,
+      explanation: it.explanation,
+      mistakeReason: it.mistake_reason,
+      options: it.options.map((o) => ({
+        id: o.id,
+        text: o.text,
+        isCorrect: o.is_correct,
+      })),
+    })),
+  };
+}
+
+/** Build a submit payload from an in-progress answer sheet. */
+export function toSubmitAnswers(
+  questions: TestQuestion[],
+  answers: AnswerSheet
+): SubmitAnswerApi[] {
+  return questions.map((q) => ({
+    question_id: q.id,
+    option_id: answers[q.id] ?? null,
+  }));
 }

@@ -7,7 +7,14 @@ import { Stack } from 'expo-router';
  */
 export default function SubjectsStackLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // Android/Fabric: a re-attached native screen can paint transparent (white)
+        // on pop. An explicit opaque background keeps the surface color instead.
+        contentStyle: { backgroundColor: '#F5F7FC' },
+      }}
+    >
       <Stack.Screen name="index" />
       <Stack.Screen name="classes" />
       <Stack.Screen name="modules" />

@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SearchBar } from './SearchBar';
 import { Segmented } from './Segmented';
 import { FriendRow } from './FriendRow';
 import { RequestRow } from './RequestRow';
-import { SHADOW_SOFT } from '@/lib/onboarding-theme';
-import type { Friend, FriendRequest, RequestDirection } from '@/lib/mock/friends';
+import ErrorState from '@/components/ErrorState';
+import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
+import type { Friend, FriendRequest, RequestDirection } from '@/lib/friendships';
 
 export type FriendsTab = 'friends' | 'requests';
 
@@ -20,10 +21,16 @@ interface FriendsScreenProps {
   onChangeQuery: (query: string) => void;
   friends: Friend[];
   requests: FriendRequest[];
-  onOpenPerson: (id: string) => void;
-  onCancel: (requestId: string) => void;
-  onAccept: (requestId: string) => void;
-  onReject: (requestId: string) => void;
+  /** True while the list for the active tab is loading for the first time. */
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  /** Request id with a mutation in flight — its buttons are disabled. */
+  busyRequestId?: number;
+  onOpenPerson: (profileId: number) => void;
+  onCancel: (requestId: number) => void;
+  onAccept: (requestId: number) => void;
+  onReject: (requestId: number) => void;
 }
 
 const matches = (name: string, q: string) => name.toLowerCase().includes(q.trim().toLowerCase());
@@ -43,6 +50,10 @@ export function FriendsScreen({
   onChangeQuery,
   friends,
   requests,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  busyRequestId,
   onOpenPerson,
   onCancel,
   onAccept,
@@ -104,7 +115,15 @@ export function FriendsScreen({
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        {isEmpty ? (
+        {isLoading ? (
+          <View className="items-center pt-16">
+            <ActivityIndicator color={COLORS.blue500} />
+          </View>
+        ) : isError ? (
+          <View className="pt-6">
+            <ErrorState title="Тізімді жүктеу мүмкін болмады" onRetry={onRetry} />
+          </View>
+        ) : isEmpty ? (
           <EmptyState text={emptyText} />
         ) : (
           <View style={SHADOW_SOFT} className="rounded-lg bg-white px-2 py-1">
@@ -125,6 +144,7 @@ export function FriendsScreen({
                     onCancel={onCancel}
                     onAccept={onAccept}
                     onReject={onReject}
+                    busy={busyRequestId === request.id}
                     showDivider={i < visibleRequests.length - 1}
                   />
                 ))}

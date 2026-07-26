@@ -3,18 +3,18 @@ import { useRouter } from 'expo-router';
 
 import { FriendsScreen, type FriendsTab } from '@/components/friends/FriendsScreen';
 import {
-  MOCK_FRIENDS,
-  MOCK_REQUESTS,
-  type Friend,
-  type FriendRequest,
-  type RequestDirection,
-} from '@/lib/mock/friends';
+  useCancelFriendRequest,
+  useFriendRequests,
+  useFriends,
+  useRespondToFriendRequest,
+} from '@/hooks/useFriendships';
+import type { RequestDirection } from '@/lib/friendships';
 
 /**
  * Friends tab root. Owns UI state (active tab, request direction, search) and
- * the (currently mock) data + actions. Request actions mutate local state so
- * the buttons feel real; swap the seeds + handlers for the API once endpoints
- * land. Row taps push the friend's profile screen.
+ * binds the friendships API to the screen: the lists come from React Query and
+ * accept/reject/cancel are mutations that invalidate both lists on success. Row
+ * taps push the friend's profile screen.
  */
 export default function FriendshipsRoute() {
   const router = useRouter();
@@ -23,21 +23,39 @@ export default function FriendshipsRoute() {
   const [requestDir, setRequestDir] = useState<RequestDirection>('received');
   const [query, setQuery] = useState('');
 
-  const [friends] = useState<Friend[]>(MOCK_FRIENDS);
-  const [requests, setRequests] = useState<FriendRequest[]>(MOCK_REQUESTS);
+  const friendsQuery = useFriends();
+  // Only the visible direction is fetched; switching the toggle swaps the query key.
+  const requestsQuery = useFriendRequests(requestDir);
+
+  const respond = useRespondToFriendRequest();
+  const cancel = useCancelFriendRequest();
 
   const openPerson = useCallback(
-    (id: string) => {
-      router.push(`/(app)/(authenticated)/(tabs)/friendships/${id}`);
+    (profileId: number) => {
+      router.push(`/(app)/(authenticated)/(tabs)/friendships/${profileId}`);
     },
     [router]
   );
 
-  // Mock mutations: drop the request from the list. Accept would also add to
-  // friends once the backend confirms it — left out until the endpoint exists.
-  const removeRequest = useCallback((requestId: string) => {
-    setRequests((prev) => prev.filter((r) => r.id !== requestId));
-  }, []);
+  const accept = useCallback(
+    (requestId: number) => respond.mutate({ requestId, action: 'accept' }),
+    [respond]
+  );
+  const reject = useCallback(
+    (requestId: number) => respond.mutate({ requestId, action: 'reject' }),
+    [respond]
+  );
+  const cancelRequest = useCallback((requestId: number) => cancel.mutate(requestId), [cancel]);
+
+  const active = activeTab === 'friends' ? friendsQuery : requestsQuery;
+
+  // The row whose buttons are mid-flight: mutation variables are the request id
+  // for cancel and an object for respond.
+  const busyRequestId = respond.isPending
+    ? respond.variables?.requestId
+    : cancel.isPending
+      ? cancel.variables
+      : undefined;
 
   return (
     <FriendsScreen
@@ -47,12 +65,16 @@ export default function FriendshipsRoute() {
       onChangeRequestDir={setRequestDir}
       query={query}
       onChangeQuery={setQuery}
-      friends={friends}
-      requests={requests}
+      friends={friendsQuery.data ?? []}
+      requests={requestsQuery.data ?? []}
+      isLoading={active.isLoading}
+      isError={active.isError}
+      onRetry={() => active.refetch()}
+      busyRequestId={busyRequestId}
       onOpenPerson={openPerson}
-      onCancel={removeRequest}
-      onAccept={removeRequest}
-      onReject={removeRequest}
+      onCancel={cancelRequest}
+      onAccept={accept}
+      onReject={reject}
     />
   );
 }

@@ -1,13 +1,14 @@
-import { Image, Text } from 'react-native';
+import { Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { Avatar } from './Avatar';
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS } from '@/lib/onboarding-theme';
-import type { Friend } from '@/lib/mock/friends';
+import type { Friend } from '@/lib/friendships';
 
 interface FriendRowProps {
   friend: Friend;
-  onPress: (id: string) => void;
+  onPress: (id: number) => void;
   /** Draw a hairline divider under the row (omit on the last row of the card). */
   showDivider?: boolean;
 }
@@ -22,7 +23,7 @@ export function FriendRow({ friend, onPress, showDivider }: FriendRowProps) {
       className={`flex-row items-center gap-3 rounded-md px-3 py-3 ${
         showDivider ? 'border-b border-line-200' : ''
       }`}>
-      <Image source={{ uri: friend.avatarUrl }} className="h-12 w-12 rounded-pill" />
+      <Avatar username={friend.username} id={friend.id} />
       <Text className="flex-1 font-bodyBold text-base text-ink-900" numberOfLines={1}>
         {friend.username}
       </Text>

@@ -24,6 +24,8 @@ export const DEV_BYPASS_AUTH =
  * onboarding under the bypass.
  */
 export const MOCK_PROFILE: Profile = {
+  id: 1,
+  username: 'demo_student',
   target_university: null,
   target_specialty: null,
   target_score: null,

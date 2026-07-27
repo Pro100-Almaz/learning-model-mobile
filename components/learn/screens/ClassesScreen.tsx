@@ -1,5 +1,6 @@
 import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import type { ClassLevel, Subject } from '@/lib/learn';
 import { type BreadcrumbItem } from '../Breadcrumb';
@@ -32,6 +33,7 @@ export function ClassesScreen({
   onTest,
 }: ClassesScreenProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-surface-app">
@@ -57,8 +59,8 @@ export function ClassesScreen({
           ListEmptyComponent={
             <LearnEmptyState
               icon="book-outline"
-              title="Сыныптар әзірге жоқ"
-              description="Бұл пән бойынша сабақтар жақында қосылады."
+              title={t('learn.classesEmptyTitle')}
+              description={t('learn.classesEmptyBody')}
             />
           }
           renderItem={({ item }) => (

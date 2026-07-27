@@ -1,5 +1,6 @@
 import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import type { Subject } from '@/lib/learn';
 import { ScreenHeader } from '../ScreenHeader';
@@ -19,6 +20,7 @@ const isSpacer = (r: Row): r is { spacer: true } => 'spacer' in r;
 /** Top-level 2-column grid of subjects. See docs/subject_lesson_pages.md §1. */
 export function SubjectsScreen({ subjects, isLoading, onOpenSubject }: SubjectsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   // Pad to an even count so the last row's single tile doesn't stretch full-width.
   const data: Row[] = subjects.length % 2 === 1 ? [...subjects, { spacer: true }] : subjects;
@@ -26,7 +28,7 @@ export function SubjectsScreen({ subjects, isLoading, onOpenSubject }: SubjectsS
   return (
     <View className="flex-1 bg-surface-app">
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
-        <ScreenHeader title="Пәндер" onSearch={() => {}} />
+        <ScreenHeader title={t('learn.subjectsTitle')} onSearch={() => {}} />
       </View>
 
       {isLoading ? (

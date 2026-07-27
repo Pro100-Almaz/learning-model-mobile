@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '@/lib/onboarding-theme';
 import { Breadcrumb, type BreadcrumbItem } from './Breadcrumb';
@@ -22,6 +23,7 @@ interface ScreenHeaderProps {
  * See docs/subject_lesson_pages.md §1, §5.
  */
 export function ScreenHeader({ title, onBack, breadcrumb, onCrumb, right, onSearch }: ScreenHeaderProps) {
+  const { t } = useTranslation();
   return (
     <View className="border-b border-line-200 bg-surface-app px-4 pb-3 pt-2">
       <View className="min-h-[44px] flex-row items-center">
@@ -30,7 +32,7 @@ export function ScreenHeader({ title, onBack, breadcrumb, onCrumb, right, onSear
             onPress={onBack}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Артқа"
+            accessibilityLabel={t('common.back')}
             className="-ml-2 h-11 w-11 items-center justify-center rounded-pill active:bg-surface-tint">
             <Ionicons name="chevron-back" size={24} color={COLORS.ink900} />
           </Pressable>
@@ -48,7 +50,7 @@ export function ScreenHeader({ title, onBack, breadcrumb, onCrumb, right, onSear
               onPress={onSearch}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Іздеу"
+              accessibilityLabel={t('common.search')}
               className="h-11 w-11 items-center justify-center rounded-pill active:bg-surface-tint">
               <Ionicons name="search" size={22} color={COLORS.ink700} />
             </Pressable>

@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
@@ -16,11 +17,12 @@ interface VideoPlaceholderProps {
  * matching ScoreHeroCard. See docs/subject_lesson_pages.md §6.
  */
 export function VideoPlaceholder({ videoUrl, onPress }: VideoPlaceholderProps) {
+  const { t } = useTranslation();
   return (
     <PressableScale
       activeScale={0.99}
       accessibilityRole="button"
-      accessibilityLabel="Видеоны ойнату"
+      accessibilityLabel={t('learn.videoPlay')}
       onPress={onPress}
       style={SHADOW_SOFT}
       className="aspect-video items-center justify-center overflow-hidden rounded-lg bg-blue-500">
@@ -32,7 +34,7 @@ export function VideoPlaceholder({ videoUrl, onPress }: VideoPlaceholderProps) {
         <Ionicons name="play" size={30} color={COLORS.blue600} style={{ marginLeft: 3 }} />
       </View>
       <Text className="mt-3 font-bodyBold text-[13px] text-white/90">
-        {videoUrl ? 'Видеоны ойнату' : 'Видео жақында қосылады'}
+        {videoUrl ? t('learn.videoPlay') : t('learn.videoComingSoon')}
       </Text>
     </PressableScale>
   );

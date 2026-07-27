@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SHADOW_CTA } from '@/lib/onboarding-theme';
@@ -16,6 +17,7 @@ interface StickyActionsProps {
  * See docs/subject_lesson_pages.md §6.
  */
 export function StickyActions({ onTest }: StickyActionsProps) {
+  const { t } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
 
   return (
@@ -25,11 +27,11 @@ export function StickyActions({ onTest }: StickyActionsProps) {
       <PressableScale
         activeScale={0.98}
         accessibilityRole="button"
-        accessibilityLabel="Тест тапсыру"
+        accessibilityLabel={t('learn.mockTest')}
         onPress={onTest}
         style={SHADOW_CTA}
         className="h-12 items-center justify-center rounded-md bg-blue-500">
-        <Text className="font-bodyBold text-[15px] text-white">Тест тапсыру</Text>
+        <Text className="font-bodyBold text-[15px] text-white">{t('learn.mockTest')}</Text>
       </PressableScale>
     </View>
   );

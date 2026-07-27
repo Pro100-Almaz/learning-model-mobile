@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   Canvas,
   Group,
@@ -38,8 +39,10 @@ export function ScoreRing({
   size = 132,
   stroke = 12,
   reduceMotion = false,
-  unit = 'балл',
+  unit,
 }: ScoreRingProps) {
+  const { t } = useTranslation();
+  const unitLabel = unit ?? t('home.scoreUnit');
   const pct = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
 
   const cx = size / 2;
@@ -95,9 +98,9 @@ export function ScoreRing({
         <Text className="font-display text-[26px] leading-none text-white">
           {formatNumber(value)}
         </Text>
-        {unit ? (
+        {unitLabel ? (
           <Text className="mt-0.5 font-bodyBold text-[11px] uppercase tracking-[1.5px] text-white/80">
-            {unit}
+            {unitLabel}
           </Text>
         ) : null}
       </View>

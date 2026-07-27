@@ -1,13 +1,15 @@
 import { Image, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { StatCard } from '@/components/home/StatCard';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
+
+const SETTINGS = '/(app)/(authenticated)/settings' as const;
 
 /** Placeholder data until the profile endpoint is wired up. */
 const FAKE_PROFILE = {
@@ -26,25 +28,25 @@ interface MenuRow {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value?: string;
+  onPress?: () => void;
 }
 
-const MENU: MenuRow[] = [
-  { icon: 'person-outline', label: 'Жеке дерек', value: FAKE_PROFILE.grade },
-  { icon: 'trophy-outline', label: 'Жетістіктер', value: '7 белгі' },
-  { icon: 'notifications-outline', label: 'Хабарламалар' },
-  { icon: 'settings-outline', label: 'Баптаулар' },
-  { icon: 'help-circle-outline', label: 'Көмек' },
-];
-
 const Page = () => {
-  const { signOut } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.replace('/login');
-  };
+  const menu: MenuRow[] = [
+    { icon: 'person-outline', label: t('profile.menu.personalData'), value: FAKE_PROFILE.grade },
+    { icon: 'trophy-outline', label: t('profile.menu.achievements'), value: t('profile.badges', { count: 7 }) },
+    { icon: 'notifications-outline', label: t('profile.menu.notifications') },
+    {
+      icon: 'settings-outline',
+      label: t('profile.menu.settings'),
+      onPress: () => router.push(SETTINGS),
+    },
+    { icon: 'help-circle-outline', label: t('profile.menu.help') },
+  ];
 
   return (
     <View className="flex-1 bg-surface-app">
@@ -70,18 +72,18 @@ const Page = () => {
         {/* Stats */}
         <View className="flex-row gap-3">
           <StatCard
-            label="Streak"
+            label={t('profile.stats.streak')}
             value={String(FAKE_PROFILE.stats.streakDays)}
-            unit="күн"
+            unit={t('profile.unitDays')}
             icon="flame"
           />
           <StatCard
-            label="Сабақ"
+            label={t('profile.stats.lessons')}
             value={String(FAKE_PROFILE.stats.lessonsDone)}
             icon="book-outline"
           />
           <StatCard
-            label="Орын"
+            label={t('profile.stats.rank')}
             value={`#${FAKE_PROFILE.stats.rank}`}
             icon="trophy-outline"
           />
@@ -89,16 +91,16 @@ const Page = () => {
 
         {/* Menu */}
         <View className="gap-3">
-          <SectionHeader title="Профиль" />
+          <SectionHeader title={t('profile.section')} />
           <View style={SHADOW_SOFT} className="rounded-lg bg-white px-2 py-1">
-            {MENU.map((row, i) => (
+            {menu.map((row, i) => (
               <PressableScale
                 key={row.label}
                 accessibilityRole="button"
                 accessibilityLabel={row.label}
-                onPress={() => {}}
+                onPress={row.onPress ?? (() => {})}
                 className={`flex-row items-center gap-3 rounded-md px-3 py-3.5 ${
-                  i < MENU.length - 1 ? 'border-b border-line-200' : ''
+                  i < menu.length - 1 ? 'border-b border-line-200' : ''
                 }`}>
                 <View className="h-10 w-10 items-center justify-center rounded-md bg-blue-50">
                   <Ionicons name={row.icon} size={20} color={COLORS.blue600} />
@@ -112,19 +114,6 @@ const Page = () => {
             ))}
           </View>
         </View>
-
-        {/* Logout — pinned to the bottom of the content */}
-        <PressableScale
-          accessibilityRole="button"
-          accessibilityLabel="Шығу"
-          onPress={handleSignOut}
-          style={SHADOW_SOFT}
-          className="mt-2 flex-row items-center justify-center gap-2 rounded-lg bg-white py-4">
-          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
-          <Text className="font-bodyBold text-base" style={{ color: '#FF3B30' }}>
-            Шығу
-          </Text>
-        </PressableScale>
       </ScrollView>
     </View>
   );

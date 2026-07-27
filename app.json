@@ -47,7 +47,8 @@
       ],
       "expo-asset",
       "expo-secure-store",
-      "./plugins/withFmtConstevalFix"
+      "./plugins/withFmtConstevalFix",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

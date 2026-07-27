@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '@/lib/onboarding-theme';
 
@@ -42,12 +43,15 @@ export default function SearchSelect<T extends string | number>({
   value,
   onChange,
   options,
-  placeholder = 'Таңдаңыз…',
-  emptyLabel = 'Ештеңе табылмады',
+  placeholder,
+  emptyLabel,
   disabled = false,
   icon,
   searchTitle,
 }: SearchSelectProps<T>) {
+  const { t } = useTranslation();
+  const placeholderText = placeholder ?? t('searchSelect.placeholder');
+  const emptyText = emptyLabel ?? t('searchSelect.empty');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -96,7 +100,7 @@ export default function SearchSelect<T extends string | number>({
           className={`flex-1 font-body text-base ${
             selected ? 'text-ink-900' : disabled ? 'text-ink-300' : 'text-ink-500'
           }`}>
-          {selected ? selected.label : placeholder}
+          {selected ? selected.label : placeholderText}
         </Text>
         <Ionicons
           name="chevron-down"
@@ -121,13 +125,13 @@ export default function SearchSelect<T extends string | number>({
             <TextInput
               value={query}
               onChangeText={setQuery}
-              placeholder="Іздеу…"
+              placeholder={t('searchSelect.searchPlaceholder')}
               placeholderTextColor={COLORS.ink300}
               autoFocus
               className="flex-1 py-0.5 font-body text-base text-ink-900"
             />
             <Pressable onPress={close} hitSlop={8}>
-              <Text className="font-bodyBold text-blue-500">Дайын</Text>
+              <Text className="font-bodyBold text-blue-500">{t('common.done')}</Text>
             </Pressable>
           </View>
 
@@ -138,7 +142,7 @@ export default function SearchSelect<T extends string | number>({
             contentContainerClassName="px-4 py-2"
             ListEmptyComponent={
               <Text className="p-6 text-center font-body text-ink-300">
-                {emptyLabel}
+                {emptyText}
               </Text>
             }
             renderItem={({ item }) => {

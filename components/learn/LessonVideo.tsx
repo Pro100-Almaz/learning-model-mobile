@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView, type WebViewProps } from 'react-native-webview';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { isEmbedNavigation, type VideoProvider } from '@/lib/learn';
@@ -57,6 +58,7 @@ function playerHtml(src: string): string {
  * via `setSupportMultipleWindows={false}`. A redirecting tap simply does nothing.
  */
 export function LessonVideo({ embedUrl, provider, poster }: LessonVideoProps) {
+  const { t } = useTranslation();
   // With a facade the student taps the poster (a user gesture), so we can
   // autoplay; without one the WebView must wait for a tap on the embed itself.
   const [playing, setPlaying] = useState(!poster);
@@ -100,7 +102,7 @@ export function LessonVideo({ embedUrl, provider, poster }: LessonVideoProps) {
         <PressableScale
           activeScale={0.99}
           accessibilityRole="button"
-          accessibilityLabel="Видеоны ойнату"
+          accessibilityLabel={t('learn.videoPlay')}
           onPress={() => setPlaying(true)}
           className="flex-1 items-center justify-center">
           <Image

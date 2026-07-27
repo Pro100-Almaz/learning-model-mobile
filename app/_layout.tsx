@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, LogBox, useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 import '@/global.css';
+import '@/lib/i18n';
 
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@/utils/cache';
@@ -35,14 +36,16 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 60 * 1000,
-      // Don't hammer the backend on client errors (401/403/404 etc.) — an auth
-      // failure like "could not resolve user" is not transient, so retrying just
-      // spams the endpoint. Retry only genuine transient failures (network /
-      // timeout → ApiError status 0, or 5xx), and cap it.
+      // Don't hammer the backend on client errors (401/403/404/429 etc.) — an
+      // auth failure like "could not resolve user" is not transient, so retrying
+      // just spams the endpoint. Retry only genuine transient failures (network
+      // / timeout → ApiError status 0, or 5xx), and only once: a down backend
+      // shouldn't make the user wait through several timeouts before the error
+      // shows. The API client's circuit breaker + a manual retry handle the rest.
       retry: (failureCount, error) => {
         const status = error instanceof ApiError ? error.status : undefined;
         if (status !== undefined && status >= 400 && status < 500) return false;
-        return failureCount < 2;
+        return failureCount < 1;
       },
     },
   },

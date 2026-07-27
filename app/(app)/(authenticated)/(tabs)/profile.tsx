@@ -8,6 +8,7 @@ import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { StatCard } from '@/components/home/StatCard';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
+import {useGamification} from '@/hooks/useGamification';
 
 /** Placeholder data until the profile endpoint is wired up. */
 const FAKE_PROFILE = {
@@ -37,6 +38,7 @@ const MENU: MenuRow[] = [
 ];
 
 const Page = () => {
+  const {data: gamification} = useGamification();
   const { signOut } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -71,7 +73,7 @@ const Page = () => {
         <View className="flex-row gap-3">
           <StatCard
             label="Streak"
-            value={String(FAKE_PROFILE.stats.streakDays)}
+            value={gamification ? String(gamification.streak.current) : '-'}
             unit="күн"
             icon="flame"
           />

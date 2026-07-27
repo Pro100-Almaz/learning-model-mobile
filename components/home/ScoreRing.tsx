@@ -92,7 +92,7 @@ export function ScoreRing({
       </Canvas>
 
       <View className="items-center">
-        <Text className="font-display text-[26px] leading-none text-white">
+        <Text className="font-display text-[26px] leading-[32px] text-white">
           {formatNumber(value)}
         </Text>
         {unit ? (

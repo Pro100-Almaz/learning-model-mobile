@@ -38,6 +38,20 @@ export interface Profile {
   onboarding_completed: boolean;
 }
 
+export interface Streak{
+  current: number;
+  longest: number;
+  active_today: boolean;
+}
+
+export interface Gamification {
+  total_xp: number;
+  level_code: string;
+  level_label: string;
+  xp_to_next_level: number;
+  streak: Streak;
+}
+
 /** Payload accepted by PATCH /profile/. */
 export interface ProfileUpdate {
   target_university: number | null;

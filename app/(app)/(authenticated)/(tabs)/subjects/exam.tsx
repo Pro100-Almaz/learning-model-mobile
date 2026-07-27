@@ -35,6 +35,7 @@ export default function ExamRoute() {
   const onExit = useCallback(() => {
     if (moduleId) queryClient.invalidateQueries({ queryKey: [moduleId, 'lessons'] });
     if (classId) queryClient.invalidateQueries({ queryKey: [classId, 'modules'] });
+    queryClient.invalidateQueries({queryKey: gamificationQueryKey})
     back();
   }, [queryClient, moduleId, classId, back]);
 

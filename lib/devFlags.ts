@@ -2,7 +2,7 @@
 // compiled out of production builds — the flag cannot be flipped on in a
 // release, no matter what the env var says.
 
-import type { OnboardingOptions, Profile } from '@/lib/types';
+import type { OnboardingOptions, Profile, Gamification } from '@/lib/types';
 
 /**
  * When true, the app skips Clerk auth and the backend entirely: the route
@@ -15,6 +15,18 @@ import type { OnboardingOptions, Profile } from '@/lib/types';
  */
 export const DEV_BYPASS_AUTH =
   __DEV__ && process.env.EXPO_PUBLIC_DEV_BYPASS_AUTH === 'true';
+
+export const MOCK_GAMIFICATION: Gamification = {
+  total_xp: 1240,
+  level_code: 'silver',
+  level_label: 'Күміс',
+  xp_to_next_level: 260,
+  streak: {
+    current: 12,
+    longest: 19,
+    active_today: true
+  },
+};
 
 /**
  * Mock profile served while bypassing. Onboarding is marked complete so the

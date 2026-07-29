@@ -3,6 +3,7 @@ import { useUser } from '@clerk/clerk-expo';
 
 import { buildHomeViewModel, type HomeViewModel } from '@/lib/home';
 import { useProfile } from './useProfile';
+import {useGamification} from './useGamification';
 
 /**
  * Home dashboard view-model. Composes the Clerk user (name/avatar) with the
@@ -18,14 +19,16 @@ export function useDashboard(): {
 } {
   const { user } = useUser();
   const profileQuery = useProfile();
+  const gamificationQuery = useGamification();
 
   const name = user?.firstName?.trim() || 'Оқушы';
   const avatarUrl = user?.imageUrl || undefined;
   const profile = profileQuery.data;
+  const gamification = gamificationQuery.data;
 
   const vm = useMemo<HomeViewModel | undefined>(
     () =>
-      profile ? buildHomeViewModel({ name, avatarUrl, profile }) : undefined,
+      profile ? buildHomeViewModel({ name, avatarUrl, profile, gamification }) : undefined,
     [name, avatarUrl, profile]
   );
 
@@ -35,6 +38,7 @@ export function useDashboard(): {
     isError: profileQuery.isError,
     refetch: () => {
       profileQuery.refetch();
+      gamificationQuery.refetch();
     },
   };
 }

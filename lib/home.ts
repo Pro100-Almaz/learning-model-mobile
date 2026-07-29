@@ -79,7 +79,6 @@ export function lessonSubtitle(lesson: LessonItem): string {
 const DEMO_STATS = {
   expectedScore: 112,
   targetScore: 120,
-  streakDays: 12,
 } as const;
 
 const MOCK_LESSONS: LessonItem[] = [
@@ -125,9 +124,10 @@ export function buildHomeViewModel(args: {
   name: string;
   avatarUrl?: string;
   profile: Profile;
+  gamification: Gamification;
   now?: Date;
 }): HomeViewModel {
-  const { name, avatarUrl, profile, now } = args;
+  const { name, avatarUrl, profile, gamification, now } = args;
 
   const derivedExpected = profile.expected_scores.reduce(
     (sum, e) => sum + (e.score || 0),
@@ -148,7 +148,7 @@ export function buildHomeViewModel(args: {
       expectedScore,
       targetScore,
       maxScore: ENT_MAX_SCORE,
-      streakDays: DEMO_STATS.streakDays,
+      streakDays: gamification.streak.current,
       daysUntilExam: daysUntilExam(now),
     },
     todayLessons: MOCK_LESSONS,

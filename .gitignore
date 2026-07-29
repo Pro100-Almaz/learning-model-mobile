@@ -20,6 +20,10 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# node-gyp leftovers from native deps (bufferutil / utf-8-validate) running
+# their configure step in the project root
+build/
+
 # debug
 npm-debug.*
 yarn-debug.*

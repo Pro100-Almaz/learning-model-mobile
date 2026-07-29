@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
 import { PressableScale } from './PressableScale';
@@ -10,10 +11,11 @@ interface PrevButtonProps {
 
 /** Square "back" button, sits left of the primary CTA (hidden on step 0). */
 export function PrevButton({ onPress, disabled = false }: PrevButtonProps) {
+  const { t } = useTranslation();
   return (
     <PressableScale
       accessibilityRole="button"
-      accessibilityLabel="Артқа"
+      accessibilityLabel={t('common.back')}
       disabled={disabled}
       onPress={onPress}
       style={SHADOW_SOFT}

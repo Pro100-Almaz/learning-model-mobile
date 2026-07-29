@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import EmptyState from '@/components/EmptyState';
 import { subjectMax } from '@/lib/ent';
@@ -26,27 +27,28 @@ export function ExpectedScoresStep({
   currentTotal,
   maxTotal,
 }: ExpectedScoresStepProps) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerClassName="pb-8"
       keyboardShouldPersistTaps="handled">
       <StepHeader
-        eyebrow="Баллдар"
-        title="Күтілетін баллдарың"
-        subtitle="Әр пәннен қанша балл күтесің? Кейін өзгерте аласың."
+        eyebrow={t('onboarding.scoresEyebrow')}
+        title={t('onboarding.scoresTitle')}
+        subtitle={t('onboarding.scoresSubtitle')}
       />
 
       {subjects.length === 0 ? (
         <EmptyState
-          title="Пәндер қолжетімсіз"
-          body="Пәндер тізімін жүктеу мүмкін болмады. Кейінірек қайталап көр."
+          title={t('onboarding.scoresUnavailableTitle')}
+          body={t('onboarding.scoresUnavailableBody')}
         />
       ) : (
         <>
           {/* Running total */}
           <View className="mb-6 flex-row items-end justify-between rounded-lg bg-surface-tint px-5 py-4">
-            <Text className="font-bodyBold text-sm text-ink-500">Жалпы балл</Text>
+            <Text className="font-bodyBold text-sm text-ink-500">{t('onboarding.scoresTotal')}</Text>
             <Text className="font-display text-[40px] leading-[60px] text-ink-900">
               {currentTotal}
               <Text className="font-body text-lg text-ink-500"> / {maxTotal}</Text>

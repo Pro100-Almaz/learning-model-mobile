@@ -1,6 +1,7 @@
 import { ScrollView, Text, View } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SHADOW_SOFT } from "@/lib/onboarding-theme";
 import {
@@ -42,6 +43,7 @@ export function LessonDetailScreen({
   const reduceMotion = useReducedMotion();
   const started = lesson.progress > 0;
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-surface-app">
@@ -65,7 +67,7 @@ export function LessonDetailScreen({
       >
         <View className="gap-1">
           <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-blue-600">
-            Сабақ
+            {t('learn.detailEyebrow')}
           </Text>
           <Text className="font-display text-[28px] leading-tight text-ink-900">
             {lesson.title}
@@ -103,17 +105,17 @@ export function LessonDetailScreen({
             />
             <View className="flex-1 gap-0.5">
               <Text className="font-bodyBold text-base text-ink-900">
-                Жалғастыруға дайынсың
+                {t('learn.detailContinueReady')}
               </Text>
               <Text className="text-[13px] text-ink-500">
-                {lesson.progress}% аяқталды
+                {t('learn.detailPercentDone', { percent: lesson.progress })}
               </Text>
             </View>
           </View>
         ) : null}
 
         <View className="gap-2">
-          <Text className="font-display text-xl text-ink-900">Қысқаша</Text>
+          <Text className="font-display text-xl text-ink-900">{t('learn.detailSummary')}</Text>
           <Text className="text-[14px] leading-6 text-ink-700">
             {lesson.description}
           </Text>
@@ -122,7 +124,7 @@ export function LessonDetailScreen({
         {lesson.tags.length > 0 ? (
           <View className="gap-2">
             <Text className="font-display text-xl text-ink-900">
-              Негізгі ұғымдар
+              {t('learn.detailKeyConcepts')}
             </Text>
             <TagList tags={lesson.tags} />
           </View>

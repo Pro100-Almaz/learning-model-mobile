@@ -30,6 +30,13 @@ export interface OnboardingOptions {
 
 /** The authenticated user's Qadam profile. */
 export interface Profile {
+  /**
+   * StudentProfile id. Needed because the friendships endpoints are keyed by it
+   * (`/friendships/friends/<profile_id>/`) and this is the only place the app
+   * learns its own.
+   */
+  id: number;
+  username: string | null;
   target_university: number | null;
   target_specialty: number | null;
   target_score: number | null;

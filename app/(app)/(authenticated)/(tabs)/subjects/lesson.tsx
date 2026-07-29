@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { LessonDetailScreen } from '@/components/learn/screens/LessonDetailScreen';
 import { MissingScreen } from '@/components/learn/screens/MissingScreen';
@@ -22,6 +23,7 @@ export default function LessonRoute() {
     lessonId: string;
   }>();
   const { router, back, popScreens } = useLearnNav();
+  const { t } = useTranslation();
 
   const { data: subjects, isLoading: subjectsLoading } = useSubjects();
   const { data: classes, isLoading: classesLoading } = useClasses(subjectId);
@@ -35,7 +37,7 @@ export default function LessonRoute() {
     router.push({
       pathname: TEST,
       params: {
-        title: lesson?.title ?? 'Тест',
+        title: lesson?.title ?? t('learn.test'),
         lessonId,
       },
     });

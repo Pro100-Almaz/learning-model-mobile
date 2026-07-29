@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MissingScreen } from '@/components/learn/screens/MissingScreen';
 import { ModulesScreen } from '@/components/learn/screens/ModulesScreen';
 import { useLearnNav } from '@/hooks/useLearnNav';
@@ -15,6 +16,7 @@ const TEST = '/(app)/(authenticated)/(tabs)/subjects/test' as const;
 export default function ModulesRoute() {
   const { subjectId, classId } = useLocalSearchParams<{ subjectId: string; classId: string }>();
   const { router, back, popScreens } = useLearnNav();
+  const { t } = useTranslation();
   const { data: subjects } = useSubjects();
   const { data: classes } = useClasses(subjectId);
   const { data: modules, isLoading } = useModules(classId);
@@ -31,7 +33,7 @@ export default function ModulesRoute() {
   const onTest = useCallback(() => {
     router.push({
       pathname: TEST,
-      params: { title: cls?.title ?? 'Тест', scope: `${subjectId}:${classId}` },
+      params: { title: cls?.title ?? t('learn.test'), scope: `${subjectId}:${classId}` },
     });
   }, [router, subjectId, classId, cls?.title]);
 
@@ -44,7 +46,7 @@ export default function ModulesRoute() {
       modules={modules ?? []}
       isLoading={isLoading}
       breadcrumb={[
-        { label: 'Пәндер', pop: 2 },
+        { label: t('learn.subjectsTitle'), pop: 2 },
         { label: subject.title, pop: 1 },
       ]}
       onBack={back}

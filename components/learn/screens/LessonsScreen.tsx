@@ -1,6 +1,7 @@
 import { FlatList, View } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import type { Lesson, Module } from "@/lib/learn";
 import { type BreadcrumbItem } from "../Breadcrumb";
 import { LearnEmptyState } from "../LearnEmptyState";
@@ -38,6 +39,7 @@ export function LessonsScreen({
 }: LessonsScreenProps) {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-surface-app">
@@ -72,8 +74,8 @@ export function LessonsScreen({
           ListEmptyComponent={
             <LearnEmptyState
               icon="reader-outline"
-              title="Сабақтар әзірге жоқ"
-              description="Бұл бөлім бойынша сабақтар жақында қосылады."
+              title={t('learn.lessonsEmptyTitle')}
+              description={t('learn.lessonsEmptyBody')}
             />
           }
           renderItem={({ item }) => (
@@ -83,7 +85,7 @@ export function LessonsScreen({
       )}
 
       {!hasMasteryTest(lessons) && (
-      <MockTestCTA onPress={onTest} label='Модуль бойынша тест' />
+      <MockTestCTA onPress={onTest} label={t('learn.moduleTest')} />
       )}
     </View>
   );

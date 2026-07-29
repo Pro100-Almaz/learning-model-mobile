@@ -28,14 +28,22 @@ export const MOCK_GAMIFICATION: Gamification = {
   },
 };
 
-/** Mock profile served while bypassing — onboarding not yet completed. */
+/**
+ * Mock profile served while bypassing. Onboarding is marked complete so the
+ * OnboardingGate lets you straight into the app (home + tabs) instead of
+ * trapping you on the mandatory onboarding "stories" flow. Flip
+ * `onboarding_completed` to false when you specifically want to build/test
+ * onboarding under the bypass.
+ */
 export const MOCK_PROFILE: Profile = {
+  id: 1,
+  username: 'demo_student',
   target_university: null,
   target_specialty: null,
   target_score: null,
   subjects: [],
   expected_scores: [],
-  onboarding_completed: false,
+  onboarding_completed: true,
 };
 
 /** Mock select options so the onboarding steps render with real-looking data. */

@@ -1,5 +1,6 @@
 import { Image, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS } from '@/lib/onboarding-theme';
@@ -14,6 +15,7 @@ interface HomeTopBarProps {
 
 /** Greeting header (not sticky): avatar with ring, greeting, bell button. */
 export function HomeTopBar({ name, avatarUrl, subtitle, onOpenNotifications }: HomeTopBarProps) {
+  const { t } = useTranslation();
   const initial = name.trim().charAt(0).toUpperCase() || 'О';
 
   return (
@@ -30,7 +32,7 @@ export function HomeTopBar({ name, avatarUrl, subtitle, onOpenNotifications }: H
 
       <View className="flex-1">
         <Text className="font-display text-xl text-ink-900" numberOfLines={1}>
-          Сәлем, {name}!
+          {t('home.greeting', { name })}
         </Text>
         <Text className="font-body text-[13px] text-ink-500" numberOfLines={1}>
           {subtitle}
@@ -39,7 +41,7 @@ export function HomeTopBar({ name, avatarUrl, subtitle, onOpenNotifications }: H
 
       <PressableScale
         accessibilityRole="button"
-        accessibilityLabel="Хабарламалар"
+        accessibilityLabel={t('home.notifications')}
         onPress={onOpenNotifications}
         className="h-11 w-11 items-center justify-center rounded-md bg-white">
         <Ionicons name="notifications-outline" size={22} color={COLORS.ink700} />

@@ -1,5 +1,6 @@
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import ErrorState from '@/components/ErrorState';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -38,6 +39,7 @@ export function HomeScreen({
 }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const { t } = useTranslation();
 
   const contentStyle = {
     paddingTop: insets.top + 8,
@@ -48,8 +50,8 @@ export function HomeScreen({
     return (
       <View className="flex-1 justify-center bg-surface-app px-4" style={contentStyle}>
         <ErrorState
-          title="Бір нәрсе дұрыс болмады"
-          body="Деректерді жүктеу мүмкін болмады. Қайта көріп көр."
+          title={t('home.errorTitle')}
+          body={t('home.errorBody')}
           onRetry={onRetry}
         />
       </View>
@@ -68,7 +70,7 @@ export function HomeScreen({
   }
 
   const { user, stats, todayLessons, tip } = vm;
-  const streakSubtitle = `${stats.streakDays} күн қатарынан 🔥`;
+  const streakSubtitle = t('home.streak', { count: stats.streakDays });
 
   return (
     <ScrollView
@@ -86,23 +88,23 @@ export function HomeScreen({
       <ScoreHeroCard stats={stats} reduceMotion={reduceMotion} onOpenScores={onOpenScores} />
 
       <View className="flex-row gap-3">
-        <StatCard 
-          label="Streak" 
-          value={String(stats.streakDays)} 
-          unit="күн" 
-          icon="flame" 
+        <StatCard
+          label={t('home.statStreak')}
+          value={String(stats.streakDays)}
+          unit={t('home.unitDays')}
+          icon="flame"
           />
         <StatCard
-          label="ҰБТ-ге дейін"
+          label={t('home.statUntilExam')}
           value={String(stats.daysUntilExam)}
-          unit="күн"
+          unit={t('home.unitDays')}
           icon="calendar-outline"
         />
       </View>
 
       <SectionHeader
-        title="Бүгінгі жоспар"
-        trailing={<Badge>{`${todayLessons.length} сабақ`}</Badge>}
+        title={t('home.todayPlan')}
+        trailing={<Badge>{t('home.lessonsCount', { count: todayLessons.length })}</Badge>}
       />
 
       <View style={SHADOW_SOFT} className="gap-1 rounded-lg bg-white p-2">

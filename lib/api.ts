@@ -78,6 +78,8 @@ export interface ApiClient {
   get<T>(path: string): Promise<T>;
   patch<T>(path: string, body: unknown): Promise<T>;
   post<T>(path: string, body: unknown): Promise<T>;
+  /** DELETE with an optional body — some endpoints identify the row in the body. */
+  del<T>(path: string, body?: unknown): Promise<T>;
 }
 
 // Timestamps (ms) of recent *failed* sends, keyed by "METHOD /path". This lives
@@ -258,5 +260,10 @@ export function createApiClient(getToken: GetToken, language?: string): ApiClien
       request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
     post: <T,>(path: string, body: unknown) =>
       request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+    del: <T,>(path: string, body?: unknown) =>
+      request<T>(path, {
+        method: 'DELETE',
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      }),
   };
 }

@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS, SHADOW_CTA } from '@/lib/onboarding-theme';
 
@@ -8,6 +9,7 @@ import { COLORS, SHADOW_CTA } from '@/lib/onboarding-theme';
  * tones (no native gradient dependency) per the JS-only dependency choice.
  */
 export function WelcomeStep() {
+  const { t } = useTranslation();
   return (
     <View className="flex-1 justify-center">
       {/* Hero */}
@@ -26,10 +28,10 @@ export function WelcomeStep() {
         <Ionicons name="rocket" size={26} color={COLORS.blue400} />
       </View>
       <Text className="mb-3 font-display text-[32px] leading-tight text-ink-900">
-        ҰБТ-ға дайындалуды бастайық
+        {t('onboarding.welcomeTitle')}
       </Text>
       <Text className="font-body text-base leading-6 text-ink-500">
-        Бірнеше сұраққа жауап бер — саған лайықталған оқу жоспарын дайындаймыз.
+        {t('onboarding.welcomeBody')}
       </Text>
     </View>
   );

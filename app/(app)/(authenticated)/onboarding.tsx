@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { StoryProgress } from '@/components/onboarding/StoryProgress';
 import { OrbitStage } from '@/components/onboarding/OrbitStage';
@@ -35,6 +36,7 @@ export default function Onboarding() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const { t } = useTranslation();
 
   const optionsQuery = useOnboardingOptions();
   const profileQuery = useProfile();
@@ -142,7 +144,10 @@ export default function Onboarding() {
       .map((s) => ({
         value: s.id,
         label: s.name,
-        hint: s.latest_threshold != null ? `Шекті балл: ${s.latest_threshold}` : undefined,
+        hint:
+          s.latest_threshold != null
+            ? t('onboarding.threshold', { score: s.latest_threshold })
+            : undefined,
       }));
   }, [optionsQuery.data, targetUniversity]);
 
@@ -207,10 +212,10 @@ export default function Onboarding() {
       if (result.onboarding_completed) {
         router.replace(HOME);
       } else {
-        setSubmitError('Онбординг аяқталмады. Жауаптарыңды тексеріп көр.');
+        setSubmitError(t('onboarding.errorNotCompleted'));
       }
     } catch {
-      setSubmitError('Сақтау мүмкін болмады. Қайта көріп көр.');
+      setSubmitError(t('onboarding.errorSaveFailed'));
     }
   }
 
@@ -232,9 +237,9 @@ export default function Onboarding() {
   const isLast = step === LAST_STEP;
   const primaryLabel = isLast
     ? isSubmitting
-      ? 'Сақталуда…'
-      : 'Бастау'
-    : 'Жалғастыру';
+      ? t('onboarding.saving')
+      : t('common.start')
+    : t('common.continue');
 
   // ────────────────── Render ──────────────────
 
@@ -315,7 +320,7 @@ export default function Onboarding() {
               onPress={skipGoal}
               disabled={isSubmitting}
               className="h-14 justify-center px-2">
-              <Text className="font-bodyBold text-base text-ink-500">Өткізу</Text>
+              <Text className="font-bodyBold text-base text-ink-500">{t('onboarding.skip')}</Text>
             </PressableScale>
           ) : null}
 

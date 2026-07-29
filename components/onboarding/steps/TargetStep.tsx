@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Chip } from '../Chip';
 import { StepHeader } from '../StepHeader';
@@ -16,22 +17,23 @@ interface TargetStepProps {
 
 /** Step: pick a target total score (optional; soft-clamped ≥ expected total). */
 export function TargetStep({ value, max, floor, onChange }: TargetStepProps) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerClassName="pb-8 mt-9"
       keyboardShouldPersistTaps="handled">
       <StepHeader
-        eyebrow="Мақсат балл"
-        title="Мақсатың қандай?"
-        subtitle="Қай балға ұмтыласың? Мұны кейін өткізіп жіберуге де болады."
+        eyebrow={t('onboarding.targetEyebrow')}
+        title={t('onboarding.targetTitle')}
+        subtitle={t('onboarding.targetSubtitle')}
       />
 
       <View className="items-center py-2 mt-10">
         <Text className="font-display text-[64px] leading-[90px] text-blue-500">
           {value}
         </Text>
-        <Text className="mt-1 font-body text-sm text-ink-300">{max} баллдан</Text>
+        <Text className="mt-1 font-body text-sm text-ink-300">{t('onboarding.targetOfMax', { max })}</Text>
       </View>
 
       <View className="mt-2">
@@ -51,7 +53,7 @@ export function TargetStep({ value, max, floor, onChange }: TargetStepProps) {
 
       {floor > 0 ? (
         <Text className="mt-5 text-center font-body text-xs text-ink-300">
-          Күтілетін балдарыңның қосындысы: {floor}
+          {t('onboarding.targetExpectedSum', { total: floor })}
         </Text>
       ) : null}
     </ScrollView>

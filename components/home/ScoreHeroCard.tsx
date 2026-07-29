@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SHADOW_CTA } from '@/lib/onboarding-theme';
@@ -18,6 +19,7 @@ interface ScoreHeroCardProps {
  * layered brand-blue tones (no native gradient dependency), matching WelcomeStep.
  */
 export function ScoreHeroCard({ stats, reduceMotion, onOpenScores }: ScoreHeroCardProps) {
+  const { t } = useTranslation();
   const remaining = remainingToTarget(stats);
 
   return (
@@ -36,23 +38,23 @@ export function ScoreHeroCard({ stats, reduceMotion, onOpenScores }: ScoreHeroCa
 
       <View className="flex-1">
         <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-white/80">
-          Күтілетін балл
+          {t('home.expectedScore')}
         </Text>
         <Text
           className="mb-1.5 mt-1 font-display text-xl leading-tight text-white"
           numberOfLines={2}
           adjustsFontSizeToFit>
-          {remaining > 0 ? `Мақсатқа ${remaining} балл қалды` : 'Мақсатқа жеттің! 🎉'}
+          {remaining > 0 ? t('home.remaining', { count: remaining }) : t('home.reachedGoal')}
         </Text>
 
         <PressableScale
           accessibilityRole="button"
-          accessibilityLabel="Балдарды көру"
+          accessibilityLabel={t('home.viewScores')}
           onPress={onOpenScores}
           style={SHADOW_CTA}
           className="h-10 flex-row items-center gap-2 self-start rounded-md bg-amber-500 px-4">
           <Ionicons name="trophy" size={16} color="#5A3A00" />
-          <Text className="font-bodyBold text-sm text-[#5A3A00]">Балдарды көру</Text>
+          <Text className="font-bodyBold text-sm text-[#5A3A00]">{t('home.viewScores')}</Text>
         </PressableScale>
       </View>
     </View>

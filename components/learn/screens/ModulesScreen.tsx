@@ -1,6 +1,7 @@
 import { FlatList, View } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { ClassLevel, Module } from '@/lib/learn';
 import { type BreadcrumbItem } from '../Breadcrumb';
@@ -38,6 +39,7 @@ export function ModulesScreen({
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const reduceMotion = useReducedMotion();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-surface-app">
@@ -63,8 +65,8 @@ export function ModulesScreen({
           ListEmptyComponent={
             <LearnEmptyState
               icon="layers-outline"
-              title="Бөлімдер әзірге жоқ"
-              description="Бұл сынып бойынша материалдар жақында қосылады."
+              title={t('learn.modulesEmptyTitle')}
+              description={t('learn.modulesEmptyBody')}
             />
           }
           renderItem={({ item, index }) => (

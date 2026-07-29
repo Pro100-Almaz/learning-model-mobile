@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import SearchSelect, { type SearchSelectOption } from '@/components/SearchSelect';
 import { StepHeader } from '../StepHeader';
@@ -23,44 +24,45 @@ export function ProfileStep({
   onSpecialtyChange,
   selectedThreshold,
 }: ProfileStepProps) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerClassName="pb-8"
       keyboardShouldPersistTaps="handled">
       <StepHeader
-        eyebrow="Мақсат"
-        title="Қайда оқығың келеді?"
-        subtitle="Мақсатты университет пен мамандықты таңда."
+        eyebrow={t('onboarding.profileEyebrow')}
+        title={t('onboarding.profileTitle')}
+        subtitle={t('onboarding.profileSubtitle')}
       />
 
       <View className="gap-4">
         <View>
-          <Text className="mb-1.5 font-bodyBold text-sm text-ink-900">Университет</Text>
+          <Text className="mb-1.5 font-bodyBold text-sm text-ink-900">{t('onboarding.university')}</Text>
           <SearchSelect
             value={targetUniversity}
             onChange={onUniversityChange}
             options={universityOptions}
             icon="school-outline"
-            placeholder="Университетті таңда"
-            searchTitle="Университет"
-            emptyLabel="Университет табылмады"
+            placeholder={t('onboarding.selectUniversity')}
+            searchTitle={t('onboarding.university')}
+            emptyLabel={t('onboarding.universityNotFound')}
           />
         </View>
 
         <View>
-          <Text className="mb-1.5 font-bodyBold text-sm text-ink-900">Мамандық</Text>
+          <Text className="mb-1.5 font-bodyBold text-sm text-ink-900">{t('onboarding.specialty')}</Text>
           <SearchSelect
             value={targetSpecialty}
             onChange={onSpecialtyChange}
             options={specialtyOptions}
             icon="ribbon-outline"
-            placeholder="Мамандықты таңда"
-            searchTitle="Мамандық"
+            placeholder={t('onboarding.selectSpecialty')}
+            searchTitle={t('onboarding.specialty')}
             emptyLabel={
               targetUniversity == null
-                ? 'Алдымен университетті таңда'
-                : 'Мамандық табылмады'
+                ? t('onboarding.selectUniversityFirst')
+                : t('onboarding.specialtyNotFound')
             }
             disabled={targetUniversity == null}
           />
@@ -68,7 +70,7 @@ export function ProfileStep({
 
         {selectedThreshold != null ? (
           <View className="flex-row items-center gap-2 rounded-md bg-surface-tint px-4 py-3">
-            <Text className="font-body text-sm text-ink-500">Өткен жылғы шекті балл:</Text>
+            <Text className="font-body text-sm text-ink-500">{t('onboarding.lastYearThreshold')}</Text>
             <Text className="font-bodyBold text-sm text-blue-600">
               {selectedThreshold}
             </Text>

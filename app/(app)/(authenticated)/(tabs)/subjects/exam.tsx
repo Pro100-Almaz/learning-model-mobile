@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { LadderExamScreen } from '@/components/learn/screens/LadderExamScreen';
@@ -29,6 +30,7 @@ export default function ExamRoute() {
   const { router, back } = useLearnNav();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Leaving the exam: the ladder session updates lesson mastery on the backend,
   // so refetch the lessons list (and the module summary it renders) on return.
@@ -94,8 +96,8 @@ export default function ExamRoute() {
     return (
       <EmptyState
         icon="lock-closed-outline"
-        title="Тест әзірге қолжетімсіз"
-        message="Бұл модуль бойынша тест әлі ашылмаған. Сәл кейінірек кіріп көр."
+        title={t('learn.examUnavailableTitle')}
+        message={t('learn.examUnavailableBody')}
         onBack={back}
       />
     );
@@ -105,8 +107,8 @@ export default function ExamRoute() {
     return (
       <EmptyState
         icon="cloud-offline-outline"
-        title="Тест жүктелмеді"
-        message="Тестті жүктеу мүмкін болмады. Байланысыңды тексеріп, қайталап көр."
+        title={t('learn.testLoadErrorTitle')}
+        message={t('learn.testLoadErrorBody')}
         onBack={back}
       />
     );
@@ -136,6 +138,7 @@ function EmptyState({
   onBack: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   return (
     <View
       className="flex-1 items-center justify-center bg-surface-app px-8"
@@ -151,12 +154,12 @@ function EmptyState({
       <PressableScale
         activeScale={0.98}
         accessibilityRole="button"
-        accessibilityLabel="Артқа қайту"
+        accessibilityLabel={t('common.goBack')}
         onPress={onBack}
         style={SHADOW_CTA}
         className="mt-8 h-12 flex-row items-center justify-center gap-2 self-stretch rounded-md bg-blue-500">
         <Ionicons name="arrow-back" size={18} color={COLORS.white} />
-        <Text className="font-bodyBold text-[15px] text-white">Артқа</Text>
+        <Text className="font-bodyBold text-[15px] text-white">{t('common.back')}</Text>
       </PressableScale>
     </View>
   );

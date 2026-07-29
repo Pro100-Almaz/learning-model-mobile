@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, Text, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { MathText } from '@/components/learn/MathText';
 import { COLORS, SHADOW_CTA, SHADOW_SOFT } from '@/lib/onboarding-theme';
@@ -54,6 +55,7 @@ export function TestScreen({
 }: TestScreenProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const { timeLimitSec } = attempt.test;
   const title = titleProp ?? attempt.test.title;
@@ -86,11 +88,11 @@ export function TestScreen({
       const res = await onSubmit(toSubmitAnswers(questions, answers));
       setResult(res);
     } catch {
-      Alert.alert('Қате', 'Жауаптарды жіберу мүмкін болмады. Қайталап көр.');
+      Alert.alert(t('test.errorTitle'), t('test.errorSubmitAnswers'));
     } finally {
       submittingRef.current = false;
     }
-  }, [onSubmit, questions, answers, result]);
+  }, [onSubmit, questions, answers, result, t]);
 
   // Optional countdown. Auto-submits when it reaches zero.
   const [remaining, setRemaining] = useState<number | null>(timeLimitSec);
@@ -118,10 +120,10 @@ export function TestScreen({
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (allowLeaveRef.current || result || answeredCount === 0) return;
       e.preventDefault();
-      Alert.alert('Тесттен шығасың ба?', 'Жауаптарың сақталмайды.', [
-        { text: 'Қалу', style: 'cancel' },
+      Alert.alert(t('test.exitTitle'), t('test.exitBodyTest'), [
+        { text: t('common.stay'), style: 'cancel' },
         {
-          text: 'Шығу',
+          text: t('common.exit'),
           style: 'destructive',
           onPress: () => {
             allowLeaveRef.current = true;
@@ -131,7 +133,7 @@ export function TestScreen({
       ]);
     });
     return unsubscribe;
-  }, [navigation, result, answeredCount]);
+  }, [navigation, result, answeredCount, t]);
 
   const isLast = current === total - 1;
 
@@ -156,13 +158,13 @@ export function TestScreen({
       setSynced((prev) => ({ ...prev, [qId]: chosen }));
       return true;
     } catch {
-      Alert.alert('Қате', 'Жауапты сақтау мүмкін болмады. Қайталап көр.');
+      Alert.alert(t('test.errorTitle'), t('test.errorSaveAnswer'));
       return false;
     } finally {
       syncingRef.current = false;
       setSyncing(false);
     }
-  }, [questions, current, answers, synced, onAnswer]);
+  }, [questions, current, answers, synced, onAnswer, t]);
 
   // Latest syncCurrent, so doSubmit / the countdown auto-submit can reach it
   // without listing it as a dependency (which would reset the timer each edit).
@@ -206,7 +208,7 @@ export function TestScreen({
     return (
       <View className="flex-1 bg-surface-app">
         <View style={{ paddingTop: insets.top }} className="bg-surface-app">
-          <Header title="Нәтиже" onClose={onExit} />
+          <Header title={t('test.result')} onClose={onExit} />
         </View>
 
         <ScrollView
@@ -219,7 +221,10 @@ export function TestScreen({
             </Text>
             <Text className="font-display text-[56px] leading-tight text-ink-900">{pct}%</Text>
             <Text className="text-[15px] text-ink-500">
-              {result.correctCount}/{result.totalCount} дұрыс жауап
+              {t('test.correctAnswers', {
+                correct: result.correctCount,
+                total: result.totalCount,
+              })}
             </Text>
           </View>
         </ScrollView>
@@ -230,7 +235,7 @@ export function TestScreen({
           <PressableScale
             activeScale={0.98}
             accessibilityRole="button"
-            accessibilityLabel="Жауаптарды шолу"
+            accessibilityLabel={t('test.reviewAnswers')}
             onPress={() => {
               onReview();
               setShowReview(true);
@@ -238,15 +243,15 @@ export function TestScreen({
             style={SHADOW_CTA}
             className="h-12 flex-row items-center justify-center gap-2 rounded-md bg-blue-500">
             <Ionicons name="reader-outline" size={18} color={COLORS.white} />
-            <Text className="font-bodyBold text-[15px] text-white">Жауаптарды шолу</Text>
+            <Text className="font-bodyBold text-[15px] text-white">{t('test.reviewAnswers')}</Text>
           </PressableScale>
           <PressableScale
             activeScale={0.98}
             accessibilityRole="button"
-            accessibilityLabel="Мәзірге оралу"
+            accessibilityLabel={t('test.backToMenu')}
             onPress={onExit}
             className="h-12 items-center justify-center rounded-md bg-surface-tint">
-            <Text className="font-bodyBold text-[15px] text-blue-600">Мәзірге оралу</Text>
+            <Text className="font-bodyBold text-[15px] text-blue-600">{t('test.backToMenu')}</Text>
           </PressableScale>
         </View>
       </View>
@@ -265,7 +270,7 @@ export function TestScreen({
         <View className="gap-1.5 px-4 pb-3">
           <View className="flex-row items-center justify-between">
             <Text className="font-bodyBold text-[13px] text-ink-700">
-              Сұрақ {current + 1} / {total}
+              {t('test.questionOfTotal', { current: current + 1, total })}
             </Text>
             {remaining != null ? (
               <View className="flex-row items-center gap-1">
@@ -280,7 +285,7 @@ export function TestScreen({
                 </Text>
               </View>
             ) : (
-              <Text className="text-[13px] text-ink-500">{answeredCount} жауап берілді</Text>
+              <Text className="text-[13px] text-ink-500">{t('test.answeredCount', { count: answeredCount })}</Text>
             )}
           </View>
           <View className="h-1.5 overflow-hidden rounded-pill bg-line-200">
@@ -355,13 +360,13 @@ export function TestScreen({
           activeScale={0.98}
           disabled={current === 0 || syncing}
           accessibilityRole="button"
-          accessibilityLabel="Алдыңғы"
+          accessibilityLabel={t('test.prev')}
           onPress={() => goTo(current - 1)}
           className={`h-12 flex-1 flex-row items-center justify-center gap-1 rounded-md ${
             current === 0 ? 'bg-surface-field opacity-50' : 'bg-surface-tint'
           }`}>
           <Ionicons name="chevron-back" size={18} color={COLORS.blue600} />
-          <Text className="font-bodyBold text-[15px] text-blue-600">Алдыңғы</Text>
+          <Text className="font-bodyBold text-[15px] text-blue-600">{t('test.prev')}</Text>
         </PressableScale>
 
         {isLast ? (
@@ -369,19 +374,19 @@ export function TestScreen({
             activeScale={0.98}
             disabled={submitting || syncing}
             accessibilityRole="button"
-            accessibilityLabel="Тестті аяқтау"
+            accessibilityLabel={t('test.finishTest')}
             onPress={doSubmit}
             style={SHADOW_CTA}
             className="h-12 flex-[1.4] flex-row items-center justify-center gap-2 rounded-md bg-success-500">
             {submitting || syncing ? <ActivityIndicator color={COLORS.white} size="small" /> : null}
-            <Text className="font-bodyBold text-[15px] text-white">Аяқтау</Text>
+            <Text className="font-bodyBold text-[15px] text-white">{t('test.finish')}</Text>
           </PressableScale>
         ) : (
           <PressableScale
             activeScale={0.98}
             disabled={syncing}
             accessibilityRole="button"
-            accessibilityLabel="Келесі"
+            accessibilityLabel={t('test.next')}
             onPress={() => goTo(current + 1)}
             style={SHADOW_CTA}
             className="h-12 flex-[1.4] flex-row items-center justify-center gap-1 rounded-md bg-blue-500">
@@ -389,7 +394,7 @@ export function TestScreen({
               <ActivityIndicator color={COLORS.white} size="small" />
             ) : (
               <>
-                <Text className="font-bodyBold text-[15px] text-white">Келесі</Text>
+                <Text className="font-bodyBold text-[15px] text-white">{t('test.next')}</Text>
                 <Ionicons name="chevron-forward" size={18} color={COLORS.white} />
               </>
             )}
@@ -431,10 +436,11 @@ function ReviewView({
   onBack: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   return (
     <View className="flex-1 bg-surface-app">
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
-        <Header title="Шолу" onClose={onBack} />
+        <Header title={t('test.review')} onClose={onBack} />
       </View>
 
       {review ? (
@@ -453,17 +459,17 @@ function ReviewView({
         <View className="flex-1 items-center justify-center gap-4 px-8">
           <Ionicons name="cloud-offline-outline" size={44} color={COLORS.ink500} />
           <Text className="text-center text-[15px] leading-6 text-ink-500">
-            Шолуды жүктеу мүмкін болмады. Қайталап көр.
+            {t('test.reviewLoadError')}
           </Text>
           <PressableScale
             activeScale={0.98}
             accessibilityRole="button"
-            accessibilityLabel="Қайталау"
+            accessibilityLabel={t('common.tryAgain')}
             onPress={onRetry}
             style={SHADOW_CTA}
             className="h-12 flex-row items-center justify-center gap-2 self-stretch rounded-md bg-blue-500">
             <Ionicons name="refresh" size={18} color={COLORS.white} />
-            <Text className="font-bodyBold text-[15px] text-white">Қайталау</Text>
+            <Text className="font-bodyBold text-[15px] text-white">{t('common.tryAgain')}</Text>
           </PressableScale>
         </View>
       ) : (
@@ -478,12 +484,12 @@ function ReviewView({
         <PressableScale
           activeScale={0.98}
           accessibilityRole="button"
-          accessibilityLabel="Артқа"
+          accessibilityLabel={t('common.back')}
           onPress={onBack}
           style={SHADOW_CTA}
           className="h-12 flex-row items-center justify-center gap-2 rounded-md bg-blue-500">
           <Ionicons name="arrow-back" size={18} color={COLORS.white} />
-          <Text className="font-bodyBold text-[15px] text-white">Артқа</Text>
+          <Text className="font-bodyBold text-[15px] text-white">{t('common.back')}</Text>
         </PressableScale>
       </View>
     </View>
@@ -497,6 +503,7 @@ function ReviewView({
  */
 function ReviewItemCard({ item, index }: { item: ReviewItem; index: number }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
   return (
     <View style={SHADOW_SOFT} className="gap-3 rounded-lg bg-white p-4">
       <View className="flex-row items-start gap-2">
@@ -558,14 +565,14 @@ function ReviewItemCard({ item, index }: { item: ReviewItem; index: number }) {
             hitSlop={6}
             accessibilityRole="button"
             accessibilityState={{ expanded }}
-            accessibilityLabel="Түсіндірме"
+            accessibilityLabel={t('test.explanation')}
             className="flex-row items-center gap-1">
             <Ionicons
               name={expanded ? 'chevron-down' : 'chevron-forward'}
               size={18}
               color={COLORS.blue600}
             />
-            <Text className="font-bodyBold text-[14px] text-blue-600">Түсіндірме</Text>
+            <Text className="font-bodyBold text-[14px] text-blue-600">{t('test.explanation')}</Text>
           </Pressable>
           {expanded ? (
             <View className="gap-2">
@@ -579,7 +586,7 @@ function ReviewItemCard({ item, index }: { item: ReviewItem; index: number }) {
                   <Ionicons name="alert-circle-outline" size={18} color={DANGER} />
                   <View className="flex-1">
                     <Text className="mb-0.5 font-bodyBold text-[12px] uppercase tracking-[0.5px] text-[#E5484D]">
-                      Ықтимал қате
+                      {t('test.likelyMistake')}
                     </Text>
                     <MathText value={item.mistakeReason} fontSize={14} color={COLORS.ink700} />
                   </View>
@@ -604,13 +611,14 @@ function Header({
   onClose: () => void;
   onMenu?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center border-b border-line-200 bg-surface-app px-4 pb-3 pt-2">
       <Pressable
         onPress={onClose}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Жабу"
+        accessibilityLabel={t('common.close')}
         className="-ml-2 h-11 w-11 items-center justify-center rounded-pill active:bg-surface-tint">
         <Ionicons name="close" size={26} color={COLORS.ink900} />
       </Pressable>
@@ -622,7 +630,7 @@ function Header({
           onPress={onMenu}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Сұрақтар тізімі"
+          accessibilityLabel={t('test.questionsList')}
           className="h-11 w-11 items-center justify-center rounded-pill active:bg-surface-tint">
           <Ionicons name="grid-outline" size={22} color={COLORS.ink700} />
         </Pressable>
@@ -653,6 +661,7 @@ function QuestionSidebar({
   onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
@@ -661,12 +670,12 @@ function QuestionSidebar({
           style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}
           className="w-[78%] max-w-[320px] bg-surface-app px-4">
           <View className="mb-4 flex-row items-center justify-between">
-            <Text className="font-display text-[22px] text-ink-900">Сұрақтар</Text>
+            <Text className="font-display text-[22px] text-ink-900">{t('test.questions')}</Text>
             <Pressable
               onPress={onClose}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Жабу"
+              accessibilityLabel={t('common.close')}
               className="h-10 w-10 items-center justify-center rounded-pill active:bg-surface-tint">
               <Ionicons name="close" size={24} color={COLORS.ink900} />
             </Pressable>
@@ -682,7 +691,7 @@ function QuestionSidebar({
                     key={q.id}
                     onPress={() => onJump(i)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Сұрақ ${i + 1}`}
+                    accessibilityLabel={t('test.questionAria', { number: i + 1 })}
                     className={`h-12 w-12 items-center justify-center rounded-md border ${
                       isCurrent
                         ? 'border-blue-500 bg-blue-500'
@@ -706,9 +715,9 @@ function QuestionSidebar({
             </View>
 
             <View className="mt-5 gap-2">
-              <Legend color="bg-blue-500" label="Ағымдағы" />
-              <Legend color="bg-success-50 border border-success-500" label="Жауап берілген" />
-              <Legend color="bg-white border border-line-200" label="Жауап берілмеген" />
+              <Legend color="bg-blue-500" label={t('test.legendCurrent')} />
+              <Legend color="bg-success-50 border border-success-500" label={t('test.legendAnswered')} />
+              <Legend color="bg-white border border-line-200" label={t('test.legendUnanswered')} />
             </View>
           </ScrollView>
 
@@ -716,19 +725,19 @@ function QuestionSidebar({
             activeScale={0.98}
             disabled={submitting}
             accessibilityRole="button"
-            accessibilityLabel="Тестті аяқтау"
+            accessibilityLabel={t('test.finishTest')}
             onPress={onSubmit}
             style={SHADOW_CTA}
             className="mt-4 h-12 flex-row items-center justify-center gap-2 rounded-md bg-success-500">
             {submitting ? <ActivityIndicator color={COLORS.white} size="small" /> : null}
-            <Text className="font-bodyBold text-[15px] text-white">Тестті аяқтау</Text>
+            <Text className="font-bodyBold text-[15px] text-white">{t('test.finishTest')}</Text>
           </PressableScale>
         </View>
 
         <Pressable
           className="flex-1 bg-black/40"
           accessibilityRole="button"
-          accessibilityLabel="Жабу"
+          accessibilityLabel={t('common.close')}
           onPress={onClose}
         />
       </View>

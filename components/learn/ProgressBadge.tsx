@@ -1,5 +1,7 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 import { COLORS } from '@/lib/onboarding-theme';
 
@@ -43,27 +45,28 @@ const STYLES: Record<
   },
 };
 
-function defaultLabel(status: Status, percent?: number): string {
+function defaultLabel(t: TFunction, status: Status, percent?: number): string {
   switch (status) {
     case 'done':
-      return 'Бітті';
+      return t('learn.progressDone');
     case 'progress':
-      return percent != null ? `${percent}%` : 'Жалғасуда';
+      return percent != null ? `${percent}%` : t('learn.progressInProgress');
     case 'locked':
-      return 'Жабық';
+      return t('learn.progressLocked');
     default:
-      return 'Бастау';
+      return t('learn.progressStart');
   }
 }
 
 /** Status pill (done / progress / todo / locked) with a leading glyph. */
 export function ProgressBadge({ status, percent, label }: ProgressBadgeProps) {
+  const { t } = useTranslation();
   const s = STYLES[status];
   return (
     <View className={`flex-row items-center gap-1 rounded-pill px-2.5 py-1 ${s.wrap}`}>
       <Ionicons name={s.icon} size={13} color={s.iconColor} />
       <Text className={`font-bodyBold text-[12px] ${s.text}`}>
-        {label ?? defaultLabel(status, percent)}
+        {label ?? defaultLabel(t, status, percent)}
       </Text>
     </View>
   );

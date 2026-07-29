@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { TestScreen } from '@/components/learn/screens/TestScreen';
@@ -20,6 +21,7 @@ export default function TestRoute() {
   const { title, lessonId } = useLocalSearchParams<{ title?: string; lessonId?: string }>();
   const { back } = useLearnNav();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   // Full-screen test: hide the parent tab bar while this page is focused, then
   // restore the original style (absolute + blur on iOS) on blur.
@@ -74,8 +76,8 @@ export default function TestRoute() {
     return (
       <EmptyState
         icon="document-text-outline"
-        title="Тест әзірленбеген"
-        message="Бұл сабаққа тест әлі құрылмаған. Жақын арада қосылады — сәл кейінірек кіріп көр."
+        title={t('learn.testNotReadyTitle')}
+        message={t('learn.testNotReadyBody')}
         onBack={back}
       />
     );
@@ -85,8 +87,8 @@ export default function TestRoute() {
     return (
       <EmptyState
         icon="cloud-offline-outline"
-        title="Тест жүктелмеді"
-        message="Тестті жүктеу мүмкін болмады. Байланысыңды тексеріп, қайталап көр."
+        title={t('learn.testLoadErrorTitle')}
+        message={t('learn.testLoadErrorBody')}
         onBack={back}
       />
     );
@@ -128,6 +130,7 @@ function EmptyState({
   onBack: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   return (
     <View
       className="flex-1 items-center justify-center bg-surface-app px-8"
@@ -143,12 +146,12 @@ function EmptyState({
       <PressableScale
         activeScale={0.98}
         accessibilityRole="button"
-        accessibilityLabel="Артқа қайту"
+        accessibilityLabel={t('common.goBack')}
         onPress={onBack}
         style={SHADOW_CTA}
         className="mt-8 h-12 flex-row items-center justify-center gap-2 self-stretch rounded-md bg-blue-500">
         <Ionicons name="arrow-back" size={18} color={COLORS.white} />
-        <Text className="font-bodyBold text-[15px] text-white">Артқа</Text>
+        <Text className="font-bodyBold text-[15px] text-white">{t('common.back')}</Text>
       </PressableScale>
     </View>
   );

@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SHADOW_SOFT } from '@/lib/onboarding-theme';
@@ -13,6 +14,7 @@ interface SubjectCardProps {
 
 /** Grid tile: icon, title, class count, progress bar. */
 export function SubjectCard({ subject, onPress }: SubjectCardProps) {
+  const { t } = useTranslation();
   return (
     <PressableScale
       activeScale={0.99}
@@ -28,7 +30,9 @@ export function SubjectCard({ subject, onPress }: SubjectCardProps) {
           {subject.title}
         </Text>
         <Text className="text-[13px] text-ink-500">
-          {subject.classCount > 0 ? `${subject.classCount} сынып` : 'Жақында'}
+          {subject.classCount > 0
+            ? t('learn.classCount', { count: subject.classCount })
+            : t('learn.comingSoon')}
         </Text>
       </View>
 

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSSO, useSignIn, useSignUp } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 // Required for the OAuth browser to hand control back to the app when the
 // redirect fires. Without this the SSO popup can close without completing.
@@ -51,6 +52,7 @@ const RESEND_COOLDOWN_SECONDS = 30;
 export default function Login() {
   useWarmUpBrowser();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { startSSOFlow } = useSSO();
   const { isLoaded: signInLoaded, signIn, setActive: setSignInActive } = useSignIn();
@@ -96,32 +98,26 @@ export default function Login() {
 
         // Distinguish the common failure modes instead of a blanket message.
         if (authSessionResult?.type === 'cancel' || authSessionResult?.type === 'dismiss') {
-          setError('Sign in was cancelled.');
+          setError(t('login.errors.cancelled'));
         } else if (authSessionResult && authSessionResult.type !== 'success') {
-          setError(
-            `The browser did not return to the app (${authSessionResult.type}). ` +
-              'Check that the redirect URL is allow-listed in Clerk.'
-          );
+          setError(t('login.errors.browserNoReturn', { type: authSessionResult.type }));
         } else if (signUp?.status === 'missing_requirements') {
           const missing = [
             ...(signUp.missingFields ?? []),
             ...(signUp.unverifiedFields ?? []),
           ].join(', ');
-          setError(
-            `Your Clerk instance requires extra sign-up fields (${missing || 'unknown'}) ` +
-              'that Google did not provide. Make these optional in the Clerk Dashboard.'
-          );
+          setError(t('login.errors.missingFields', { fields: missing || 'unknown' }));
         } else {
-          setError('Sign in did not complete. Please try again.');
+          setError(t('login.errors.notComplete'));
         }
       } catch (err) {
         console.warn('SSO error', clerkError(err, ''));
-        setError(clerkError(err, 'Could not sign in. Please try again.'));
+        setError(clerkError(err, t('login.errors.couldNotSignIn')));
       } finally {
         setLoading(false);
       }
     },
-    [loading, startSSOFlow, router]
+    [loading, startSSOFlow, router, t]
   );
 
   // ---- Email: send verification code -----------------------------------
@@ -129,7 +125,7 @@ export default function Login() {
     if (loading || !signInLoaded || !signUpLoaded || !signIn || !signUp) return;
     const value = email.trim().toLowerCase();
     if (!EMAIL_RE.test(value)) {
-      setError('Please enter a valid email address.');
+      setError(t('login.errors.invalidEmail'));
       return;
     }
     setError(null);
@@ -142,7 +138,7 @@ export default function Login() {
           f.strategy === 'email_code' && 'emailAddressId' in f
       );
       if (!factor) {
-        setError('Email code sign-in is not enabled for this account.');
+        setError(t('login.errors.emailCodeNotEnabled'));
         return;
       }
       await signIn.prepareFirstFactor({
@@ -166,22 +162,22 @@ export default function Login() {
           setResendIn(RESEND_COOLDOWN_SECONDS);
           setStage('verify');
         } catch (signUpErr) {
-          setError(clerkError(signUpErr, 'Could not start sign up. Please try again.'));
+          setError(clerkError(signUpErr, t('login.errors.couldNotStartSignUp')));
         }
       } else {
-        setError(clerkError(err, 'Could not send the code. Please try again.'));
+        setError(clerkError(err, t('login.errors.couldNotSendCode')));
       }
     } finally {
       setLoading(false);
     }
-  }, [loading, signInLoaded, signUpLoaded, email, signIn, signUp]);
+  }, [loading, signInLoaded, signUpLoaded, email, signIn, signUp, t]);
 
   // ---- Email: verify the 6-digit code ----------------------------------
   const handleVerifyCode = useCallback(async () => {
     if (loading || !signIn || !signUp) return;
     const value = code.trim();
     if (value.length < 6) {
-      setError('Enter the 6-digit code we emailed you.');
+      setError(t('login.errors.enterCode'));
       return;
     }
     setError(null);
@@ -193,7 +189,7 @@ export default function Login() {
           await setSignInActive({ session: res.createdSessionId });
           router.replace(HOME);
         } else {
-          setError('That code was not accepted. Please try again.');
+          setError(t('login.errors.codeNotAccepted'));
         }
       } else {
         const res = await signUp.attemptEmailAddressVerification({ code: value });
@@ -202,18 +198,20 @@ export default function Login() {
           router.replace(HOME);
         } else if (res.status === 'missing_requirements') {
           setError(
-            `Could not finish sign up (still needs: ${(res.missingFields ?? []).join(', ') || 'unknown'}).`
+            t('login.errors.couldNotFinishSignUp', {
+              fields: (res.missingFields ?? []).join(', ') || 'unknown',
+            })
           );
         } else {
-          setError('That code was not accepted. Please try again.');
+          setError(t('login.errors.codeNotAccepted'));
         }
       }
     } catch (err) {
-      setError(clerkError(err, 'Invalid or expired code. Please try again.'));
+      setError(clerkError(err, t('login.errors.invalidOrExpired')));
     } finally {
       setLoading(false);
     }
-  }, [loading, code, mode, signIn, signUp, setSignInActive, setSignUpActive, router]);
+  }, [loading, code, mode, signIn, signUp, setSignInActive, setSignUpActive, router, t]);
 
   // ---- Email: resend the verification code -----------------------------
   const handleResendCode = useCallback(async () => {
@@ -223,7 +221,7 @@ export default function Login() {
     try {
       if (mode === 'signIn') {
         if (!emailAddressId) {
-          setError('Please go back and enter your email again.');
+          setError(t('login.errors.goBackEnterEmail'));
           return;
         }
         await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId });
@@ -233,11 +231,11 @@ export default function Login() {
       setCode('');
       setResendIn(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      setError(clerkError(err, 'Could not resend the code. Please try again.'));
+      setError(clerkError(err, t('login.errors.couldNotResend')));
     } finally {
       setLoading(false);
     }
-  }, [loading, resendIn, mode, signIn, signUp, emailAddressId]);
+  }, [loading, resendIn, mode, signIn, signUp, emailAddressId, t]);
 
   const resetToOptions = () => {
     setStage('options');
@@ -258,7 +256,7 @@ export default function Login() {
             resizeMode="contain"
           />
           <Text className="text-3xl font-bold text-white text-center">
-            Your journey starts here
+            {t('login.title')}
           </Text>
 
           {error ? (
@@ -274,7 +272,7 @@ export default function Login() {
                 onPress={() => handleSignInWithSSO('oauth_apple')}>
                 <Ionicons name="logo-apple" size={24} color="black" />
                 <Text className="text-black text-center font-semibold ml-2">
-                  Continue with Apple
+                  {t('login.continueApple')}
                 </Text>
               </Pressable>
 
@@ -284,13 +282,13 @@ export default function Login() {
                 onPress={() => handleSignInWithSSO('oauth_google')}>
                 <Ionicons name="logo-google" size={24} color="black" />
                 <Text className="text-black text-center font-semibold ml-2">
-                  Continue with Google
+                  {t('login.continueGoogle')}
                 </Text>
               </Pressable>
 
               <View className="flex-row items-center gap-3 my-1">
                 <View className="flex-1 h-px bg-white/20" />
-                <Text className="text-white/50 text-sm">or</Text>
+                <Text className="text-white/50 text-sm">{t('login.or')}</Text>
                 <View className="flex-1 h-px bg-white/20" />
               </View>
 
@@ -303,7 +301,7 @@ export default function Login() {
                 }}>
                 <Ionicons name="mail-outline" size={22} color="white" />
                 <Text className="text-white text-center font-semibold ml-2">
-                  Continue with Email
+                  {t('login.continueEmail')}
                 </Text>
               </Pressable>
 
@@ -317,7 +315,7 @@ export default function Login() {
               <TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="you@example.com"
+                placeholder={t('login.emailPlaceholder')}
                 placeholderTextColor="#94a3b8"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -335,11 +333,11 @@ export default function Login() {
                 {loading ? (
                   <ActivityIndicator color="black" />
                 ) : (
-                  <Text className="text-black text-center font-semibold">Send code</Text>
+                  <Text className="text-black text-center font-semibold">{t('login.sendCode')}</Text>
                 )}
               </Pressable>
               <Pressable onPress={resetToOptions} disabled={loading}>
-                <Text className="text-white/60 text-center">Back</Text>
+                <Text className="text-white/60 text-center">{t('common.back')}</Text>
               </Pressable>
             </View>
           )}
@@ -348,13 +346,13 @@ export default function Login() {
           {stage === 'verify' && (
             <View className="w-full gap-4">
               <Text className="text-white/70 text-center">
-                We sent a 6-digit code to{'\n'}
+                {t('login.sentCodeTo')}{'\n'}
                 <Text className="text-white font-semibold">{email.trim().toLowerCase()}</Text>
               </Text>
               <TextInput
                 value={code}
-                onChangeText={(t) => setCode(t.replace(/[^0-9]/g, '').slice(0, 6))}
-                placeholder="123456"
+                onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
+                placeholder={t('login.codePlaceholder')}
                 placeholderTextColor="#94a3b8"
                 keyboardType="number-pad"
                 autoComplete="one-time-code"
@@ -372,12 +370,12 @@ export default function Login() {
                 {loading ? (
                   <ActivityIndicator color="black" />
                 ) : (
-                  <Text className="text-black text-center font-semibold">Verify & continue</Text>
+                  <Text className="text-black text-center font-semibold">{t('login.verifyContinue')}</Text>
                 )}
               </Pressable>
               <Pressable onPress={handleResendCode} disabled={loading || resendIn > 0}>
                 <Text className={`text-center ${resendIn > 0 ? 'text-white/40' : 'text-white'}`}>
-                  {resendIn > 0 ? `Resend code in ${resendIn}s` : 'Resend code'}
+                  {resendIn > 0 ? t('login.resendIn', { seconds: resendIn }) : t('login.resend')}
                 </Text>
               </Pressable>
               <Pressable
@@ -387,7 +385,7 @@ export default function Login() {
                   setStage('email');
                 }}
                 disabled={loading}>
-                <Text className="text-white/60 text-center">Use a different email</Text>
+                <Text className="text-white/60 text-center">{t('login.useDifferentEmail')}</Text>
               </Pressable>
             </View>
           )}

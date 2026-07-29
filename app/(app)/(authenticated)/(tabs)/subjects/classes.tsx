@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ClassesScreen } from '@/components/learn/screens/ClassesScreen';
 import { MissingScreen } from '@/components/learn/screens/MissingScreen';
@@ -15,6 +16,7 @@ const TEST = '/(app)/(authenticated)/(tabs)/subjects/test' as const;
 export default function ClassesRoute() {
   const { subjectId } = useLocalSearchParams<{ subjectId: string }>();
   const { router, back, popScreens } = useLearnNav();
+  const { t } = useTranslation();
 
   const { data: subjects } = useSubjects();
   const { data: classes, isLoading } = useClasses(subjectId);
@@ -30,7 +32,7 @@ export default function ClassesRoute() {
   const onTest = useCallback(() => {
     router.push({
       pathname: TEST,
-      params: { title: subject?.title ?? 'Тест', scope: subjectId },
+      params: { title: subject?.title ?? t('learn.test'), scope: subjectId },
     });
   }, [router, subjectId, subject?.title]);
 
@@ -41,7 +43,7 @@ export default function ClassesRoute() {
       subject={subject}
       classes={classes ?? []}
       isLoading={isLoading}
-      breadcrumb={[{ label: 'Пәндер', pop: 1 }]}
+      breadcrumb={[{ label: t('learn.subjectsTitle'), pop: 1 }]}
       onBack={back}
       onCrumb={popScreens}
       onOpenClass={onOpenClass}

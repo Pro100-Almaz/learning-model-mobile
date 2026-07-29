@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { LessonsScreen } from '@/components/learn/screens/LessonsScreen';
 import { MissingScreen } from '@/components/learn/screens/MissingScreen';
@@ -21,6 +22,7 @@ export default function LessonsRoute() {
     moduleId: string;
   }>();
   const { router, back, popScreens } = useLearnNav();
+  const { t } = useTranslation();
 
   const { data: subjects } = useSubjects();
   const { data: classes } = useClasses(subjectId);
@@ -40,7 +42,7 @@ export default function LessonsRoute() {
   const onTest = useCallback(() => {
     router.push({
       pathname: EXAM,
-      params: { title: module?.title ?? 'Модуль бойынша тест', subjectId, classId, moduleId },
+      params: { title: module?.title ?? t('learn.moduleTest'), subjectId, classId, moduleId },
     });
   }, [router, subjectId, classId, moduleId, module?.title]);
 
@@ -52,7 +54,7 @@ export default function LessonsRoute() {
       lessons={lessons ?? []}
       isLoading={isLoading}
       breadcrumb={[
-        { label: 'Пәндер', pop: 3 },
+        { label: t('learn.subjectsTitle'), pop: 3 },
         { label: subject.title, pop: 2 },
         { label: cls.title, pop: 1 },
       ]}

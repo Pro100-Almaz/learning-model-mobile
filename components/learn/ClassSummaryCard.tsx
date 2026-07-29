@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SHADOW_SOFT } from '@/lib/onboarding-theme';
 import type { ClassLevel } from '@/lib/learn';
 import { ProgressRing } from './ProgressRing';
@@ -10,6 +11,7 @@ interface ClassSummaryCardProps {
 
 /** Modules-screen header card: progress ring + module / lesson counts. */
 export function ClassSummaryCard({ cls, reduceMotion }: ClassSummaryCardProps) {
+  const { t } = useTranslation();
   return (
     <View
       style={SHADOW_SOFT}
@@ -22,9 +24,9 @@ export function ClassSummaryCard({ cls, reduceMotion }: ClassSummaryCardProps) {
         }
       />
       <View className="flex-1 gap-1">
-        <Text className="font-bodyBold text-base text-ink-900">Сынып бойынша үлгерім</Text>
+        <Text className="font-bodyBold text-base text-ink-900">{t('learn.classProgress')}</Text>
         <Text className="text-[13px] text-ink-500">
-          {cls.modules} бөлім · {cls.lessons} сабақ
+          {t('learn.moduleLessonCount', { modules: cls.modules, lessons: cls.lessons })}
         </Text>
       </View>
     </View>

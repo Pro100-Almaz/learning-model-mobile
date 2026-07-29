@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { MathText } from '@/components/learn/MathText';
@@ -41,13 +42,15 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
  */
 export function LadderExamScreen({
   first,
-  title = 'Модуль бойынша тест',
+  title: titleProp,
   onNext,
   onExit,
   onOpenLesson,
 }: LadderExamScreenProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { t } = useTranslation();
+  const title = titleProp ?? t('learn.moduleTest');
 
   const [step, setStep] = useState<LadderStep>(first);
   const [choice, setChoice] = useState<LadderChoice>(null);
@@ -65,10 +68,10 @@ export function LadderExamScreen({
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (allowLeaveRef.current || done) return;
       e.preventDefault();
-      Alert.alert('Тесттен шығасың ба?', 'Нәтижелерің сақталмайды.', [
-        { text: 'Қалу', style: 'cancel' },
+      Alert.alert(t('test.exitTitle'), t('test.exitBodyExam'), [
+        { text: t('common.stay'), style: 'cancel' },
         {
-          text: 'Шығу',
+          text: t('common.exit'),
           style: 'destructive',
           onPress: () => {
             allowLeaveRef.current = true;
@@ -78,7 +81,7 @@ export function LadderExamScreen({
       ]);
     });
     return unsubscribe;
-  }, [navigation, done]);
+  }, [navigation, done, t]);
 
   const submit = useCallback(async () => {
     if (submitting || choice === null || !question) return;
@@ -89,11 +92,11 @@ export function LadderExamScreen({
       setChoice(null);
       if (!nextStep.isComplete) setIndex((n) => n + 1);
     } catch {
-      Alert.alert('Қате', 'Жауапты жіберу мүмкін болмады. Қайталап көр.');
+      Alert.alert(t('test.errorTitle'), t('test.errorSubmitAnswer'));
     } finally {
       setSubmitting(false);
     }
-  }, [submitting, choice, question, onNext]);
+  }, [submitting, choice, question, onNext, t]);
 
   // --- Results (diagnostic plan) ---------------------------------------------
   if (done) {
@@ -116,7 +119,9 @@ export function LadderExamScreen({
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
         <Header title={title} onClose={onExit} />
         <View className="gap-1.5 px-4 pb-3">
-          <Text className="font-bodyBold text-[13px] text-ink-700">Сұрақ {index}</Text>
+          <Text className="font-bodyBold text-[13px] text-ink-700">
+            {t('test.questionN', { index })}
+          </Text>
           {/* Adaptive: the total is unknown, so the bar is a subtle indeterminate cue. */}
           <View className="h-1.5 overflow-hidden rounded-pill bg-line-200">
             <View className="h-full w-1/3 rounded-pill bg-blue-500" />
@@ -183,7 +188,7 @@ export function LadderExamScreen({
             activeScale={0.98}
             accessibilityRole="radio"
             accessibilityState={{ selected: choice === 'idk' }}
-            accessibilityLabel="Білмеймін"
+            accessibilityLabel={t('test.idk')}
             disabled={submitting}
             onPress={() => setChoice('idk')}
             style={choice === 'idk' ? SHADOW_SOFT : undefined}
@@ -204,7 +209,7 @@ export function LadderExamScreen({
               className={`flex-1 font-bodyBold text-[15px] ${
                 choice === 'idk' ? 'text-ink-900' : 'text-ink-500'
               }`}>
-              Білмеймін
+              {t('test.idk')}
             </Text>
             {choice === 'idk' ? (
               <Ionicons name="checkmark-circle" size={22} color={COLORS.ink500} />
@@ -222,7 +227,7 @@ export function LadderExamScreen({
           activeScale={0.98}
           disabled={choice === null || submitting}
           accessibilityRole="button"
-          accessibilityLabel="Жауап беру"
+          accessibilityLabel={t('test.submitAnswer')}
           onPress={submit}
           style={SHADOW_CTA}
           className={`h-12 flex-row items-center justify-center gap-2 rounded-md ${
@@ -232,7 +237,7 @@ export function LadderExamScreen({
             <ActivityIndicator color={COLORS.white} size="small" />
           ) : (
             <>
-              <Text className="font-bodyBold text-[15px] text-white">Жауап беру</Text>
+              <Text className="font-bodyBold text-[15px] text-white">{t('test.submitAnswer')}</Text>
               <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
             </>
           )}
@@ -246,11 +251,11 @@ export function LadderExamScreen({
 
 const VERDICT_META: Record<
   LadderVerdict,
-  { label: string; icon: keyof typeof Ionicons.glyphMap; color: string; tint: string }
+  { labelKey: string; icon: keyof typeof Ionicons.glyphMap; color: string; tint: string }
 > = {
-  solid: { label: 'Меңгерілген', icon: 'checkmark-circle', color: COLORS.success500, tint: 'bg-success-50' },
-  mastered: { label: 'Терең меңгеру', icon: 'trophy', color: COLORS.blue500, tint: 'bg-surface-tint' },
-  gap: { label: 'Қайталау қажет', icon: 'alert-circle', color: '#E5484D', tint: 'bg-[#FDECEC]' },
+  solid: { labelKey: 'test.verdictSolid', icon: 'checkmark-circle', color: COLORS.success500, tint: 'bg-success-50' },
+  mastered: { labelKey: 'test.verdictMastered', icon: 'trophy', color: COLORS.blue500, tint: 'bg-surface-tint' },
+  gap: { labelKey: 'test.verdictGap', icon: 'alert-circle', color: '#E5484D', tint: 'bg-[#FDECEC]' },
 };
 
 function PlanView({
@@ -265,13 +270,14 @@ function PlanView({
   onOpenLesson: (lessonId: number, title: string) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const topics = plan?.topics ?? [];
-  const gaps = topics.filter((t) => t.verdict === 'gap').length;
+  const gaps = topics.filter((tp) => tp.verdict === 'gap').length;
 
   return (
     <View className="flex-1 bg-surface-app">
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
-        <Header title="Нәтиже" onClose={onExit} />
+        <Header title={t('test.result')} onClose={onExit} />
       </View>
 
       <ScrollView
@@ -288,9 +294,7 @@ function PlanView({
             color={gaps === 0 ? COLORS.success500 : COLORS.blue500}
           />
           <Text className="text-center text-[15px] leading-6 text-ink-500">
-            {gaps === 0
-              ? 'Бәрін жақсы меңгергенсің! Күрделі есептермен өзіңді сына.'
-              : `${gaps} тақырыпты қайталау ұсынылады.`}
+            {gaps === 0 ? t('test.allMastered') : t('test.gapsSuggested', { count: gaps })}
           </Text>
         </View>
 
@@ -305,12 +309,12 @@ function PlanView({
         <PressableScale
           activeScale={0.98}
           accessibilityRole="button"
-          accessibilityLabel="Мәзірге оралу"
+          accessibilityLabel={t('test.backToMenu')}
           onPress={onExit}
           style={SHADOW_CTA}
           className="h-12 flex-row items-center justify-center gap-2 rounded-md bg-blue-500">
           <Ionicons name="arrow-back" size={18} color={COLORS.white} />
-          <Text className="font-bodyBold text-[15px] text-white">Мәзірге оралу</Text>
+          <Text className="font-bodyBold text-[15px] text-white">{t('test.backToMenu')}</Text>
         </PressableScale>
       </View>
     </View>
@@ -328,6 +332,7 @@ function TopicCard({
   topic: LadderPlanTopic;
   onOpenLesson: (lessonId: number, title: string) => void;
 }) {
+  const { t } = useTranslation();
   const meta = VERDICT_META[topic.verdict];
   return (
     <View style={SHADOW_SOFT} className="gap-3 rounded-lg bg-white p-4">
@@ -338,7 +343,7 @@ function TopicCard({
         </Text>
         <View className={`rounded-pill px-2.5 py-1 ${meta.tint}`}>
           <Text className="font-bodyBold text-[11px]" style={{ color: meta.color }}>
-            {meta.label}
+            {t(meta.labelKey)}
           </Text>
         </View>
       </View>
@@ -355,7 +360,7 @@ function TopicCard({
         <View className="flex-row items-center gap-2 rounded-md bg-surface-tint p-3">
           <Ionicons name="flame-outline" size={18} color={COLORS.blue600} />
           <Text className="flex-1 text-[13px] leading-5 text-ink-700">
-            {topic.hardQuestionIds.length} күрделі есеп қолжетімді.
+            {t('test.hardAvailable', { count: topic.hardQuestionIds.length })}
           </Text>
         </View>
       ) : null}
@@ -388,13 +393,14 @@ function LessonRow({
 // --- Header ------------------------------------------------------------------
 
 function Header({ title, onClose }: { title: string; onClose: () => void }) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center border-b border-line-200 bg-surface-app px-4 pb-3 pt-2">
       <Pressable
         onPress={onClose}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Жабу"
+        accessibilityLabel={t('common.close')}
         className="-ml-2 h-11 w-11 items-center justify-center rounded-pill active:bg-surface-tint">
         <Ionicons name="close" size={26} color={COLORS.ink900} />
       </Pressable>

@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS } from '@/lib/onboarding-theme';
@@ -17,6 +18,7 @@ interface LessonRowProps {
  * todo rows a chevron. Presses scale via PressableScale (design §3).
  */
 export function LessonRow({ lesson, onPress }: LessonRowProps) {
+  const { t } = useTranslation();
   const isDone = lesson.state === 'done';
 
   return (
@@ -42,7 +44,7 @@ export function LessonRow({ lesson, onPress }: LessonRowProps) {
       </View>
 
       {lesson.state === 'active' ? (
-        <Badge tone="solid">Бастау</Badge>
+        <Badge tone="solid">{t('common.start')}</Badge>
       ) : isDone ? (
         <View className="h-7 w-7 items-center justify-center rounded-pill bg-teal-500">
           <Ionicons name="checkmark" size={16} color={COLORS.white} />

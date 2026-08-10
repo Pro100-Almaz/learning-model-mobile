@@ -1,5 +1,6 @@
 import { Image, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -8,15 +9,11 @@ import { PressableScale } from '@/components/onboarding/PressableScale';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { StatCard } from '@/components/home/StatCard';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
-import {useGamification} from '@/hooks/useGamification';
+import { useGamification } from '@/hooks/useGamification';
 
 const SETTINGS = '/(app)/(authenticated)/settings' as const;
 
-/** Placeholder data until the profile endpoint is wired up. */
 const FAKE_PROFILE = {
-  name: 'Бекжан Нұрақын',
-  email: 'bekzhan.n@example.com',
-  avatarUrl: 'https://i.pravatar.cc/200?img=12',
   grade: '11-сынып',
   stats: {
     streakDays: 12,
@@ -33,11 +30,17 @@ interface MenuRow {
 }
 
 const Page = () => {
-  const {data: gamification} = useGamification();
-  const { signOut } = useAuth();
+  const { data: gamification } = useGamification();
+  const { user } = useUser();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+
+  const email = user?.primaryEmailAddress?.emailAddress ?? '';
+  const fullName = [user?.firstName, user?.lastName]
+    .filter((part): part is string => Boolean(part?.trim()))
+    .join(' ');
+  const displayName = fullName || email.split('@')[0] || t('profile.section');
 
   const menu: MenuRow[] = [
     { icon: 'person-outline', label: t('profile.menu.personalData'), value: FAKE_PROFILE.grade },
@@ -61,14 +64,19 @@ const Page = () => {
         {/* Header card */}
         <View style={SHADOW_SOFT} className="items-center gap-3 rounded-lg bg-white p-6">
           <View className="h-24 w-24 items-center justify-center rounded-pill border-2 border-blue-200 p-1">
-            <Image
-              source={{ uri: FAKE_PROFILE.avatarUrl }}
-              className="h-full w-full rounded-pill"
-            />
+            {user?.imageUrl ? (
+              <Image source={{ uri: user.imageUrl }} className="h-full w-full rounded-pill" />
+            ) : (
+              <View className="h-full w-full items-center justify-center rounded-pill bg-blue-50">
+                <Ionicons name="person" size={40} color={COLORS.blue600} />
+              </View>
+            )}
           </View>
           <View className="items-center">
-            <Text className="font-display text-2xl text-ink-900">{FAKE_PROFILE.name}</Text>
-            <Text className="font-body text-[13px] text-ink-500">{FAKE_PROFILE.email}</Text>
+            <Text className="font-display text-2xl text-ink-900">{displayName}</Text>
+            {email ? (
+              <Text className="font-body text-[13px] text-ink-500">{email}</Text>
+            ) : null}
           </View>
         </View>
 
@@ -79,16 +87,19 @@ const Page = () => {
             value={gamification ? String(gamification.streak.current) : '-'}
             unit={t('profile.unitDays')}
             icon="flame"
+            variant="compact"
           />
           <StatCard
             label={t('profile.stats.lessons')}
             value={String(FAKE_PROFILE.stats.lessonsDone)}
-            icon="book-outline"
+            icon="book"
+            variant="compact"
           />
           <StatCard
             label={t('profile.stats.rank')}
             value={`#${FAKE_PROFILE.stats.rank}`}
-            icon="trophy-outline"
+            icon="trophy"
+            variant="compact"
           />
         </View>
 

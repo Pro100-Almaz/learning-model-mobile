@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 
-import { useApiClient } from "./useApiClient";
-import { type Progress } from "@/lib/learn";
+import { useApiClient } from './useApiClient';
+import { type Progress } from '@/lib/learn';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 interface ClassLevelApi {
   id: string;
@@ -13,14 +14,14 @@ interface ClassLevelApi {
   progress: Progress;
 }
 
-export function useClasses(subjectId: string) {
+export function useClasses(subjectId: string | undefined) {
   const api = useApiClient();
+  const { language } = useLanguage();
   return useQuery({
-    queryKey: [subjectId, "classes"],
+    enabled: !!subjectId,
+    queryKey: [subjectId, 'classes', language],
     queryFn: async () => {
-      const raw = await api.get<ClassLevelApi[]>(
-        `/subjects/${subjectId}/`,
-      );
+      const raw = await api.get<ClassLevelApi[]>(`/subjects/${subjectId}/`);
       return raw.map((r) => {
         return {
           id: r.id,

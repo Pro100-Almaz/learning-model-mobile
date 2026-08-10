@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar } from './Avatar';
 import { PressableScale } from '@/components/onboarding/PressableScale';
@@ -36,6 +37,7 @@ export function RequestRow({
   busy = false,
 }: RequestRowProps) {
   const { user, direction } = request;
+  const { t } = useTranslation();
 
   return (
     <View
@@ -56,20 +58,20 @@ export function RequestRow({
       {direction === 'sent' ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Сұранысты болдырмау"
+          accessibilityLabel={t('friends.cancelRequest')}
           onPress={() => onCancel(request.id)}
           disabled={busy}
           hitSlop={6}
           className={`rounded-pill bg-surface-field px-4 py-2 active:opacity-70 ${
             busy ? 'opacity-50' : ''
           }`}>
-          <Text className="font-bodyBold text-sm text-ink-700">Болдырмау</Text>
+          <Text className="font-bodyBold text-sm text-ink-700">{t('friends.cancel')}</Text>
         </Pressable>
       ) : (
         <View className={`flex-row items-center gap-2 ${busy ? 'opacity-50' : ''}`}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Қабылдамау"
+            accessibilityLabel={t('friends.reject')}
             onPress={() => onReject(request.id)}
             disabled={busy}
             hitSlop={6}
@@ -78,7 +80,7 @@ export function RequestRow({
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Қабылдау"
+            accessibilityLabel={t('friends.accept')}
             onPress={() => onAccept(request.id)}
             disabled={busy}
             hitSlop={6}

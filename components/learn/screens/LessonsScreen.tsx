@@ -84,8 +84,8 @@ export function LessonsScreen({
         />
       )}
 
-      {!hasMasteryTest(lessons) && (
-      <MockTestCTA onPress={onTest} label={t('learn.moduleTest')} />
+      {lessons.length > 0 && !hasMasteryTest(lessons) && (
+        <MockTestCTA onPress={onTest} label={t('learn.moduleTest')} />
       )}
     </View>
   );

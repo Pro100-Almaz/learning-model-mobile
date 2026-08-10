@@ -41,13 +41,15 @@ export function SubjectsScreen({ subjects, isLoading, onOpenSubject }: SubjectsS
           keyExtractor={(item, i) => (isSpacer(item) ? `spacer-${i}` : item.id)}
           numColumns={2}
           columnWrapperStyle={{ gap: 12 }}
-          contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: insets.bottom + 24 }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) =>
             isSpacer(item) ? (
-              <View className="flex-1" />
+              <View style={{ flex: 1, minWidth: 0 }} />
             ) : (
-              <SubjectCard subject={item} onPress={() => onOpenSubject(item.id)} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <SubjectCard subject={item} onPress={() => onOpenSubject(item.id)} />
+              </View>
             )
           }
         />

@@ -21,6 +21,7 @@
   "tabs": {
     "home": "Басты",
     "subjects": "Пәндер",
+    "friends": "Достар",
     "profile": "Профиль"
   },
   "login": {
@@ -89,6 +90,25 @@
       "title": "Тілді таңда"
     }
   },
+  "friends": {
+    "title": "Достар",
+    "friendsList": "Достар тізімі",
+    "requests": "Сұраныстар",
+    "received": "Келген",
+    "sent": "Жіберілген",
+    "searchPlaceholder": "Достарды іздеу…",
+    "emptyFriends": "Дос табылмады",
+    "emptyReceived": "Жаңа сұраныс жоқ",
+    "emptySent": "Жіберілген сұраныс жоқ",
+    "loadError": "Тізімді жүктеу мүмкін болмады",
+    "cancelRequest": "Сұранысты болдырмау",
+    "cancel": "Болдырмау",
+    "reject": "Қабылдамау",
+    "accept": "Қабылдау",
+    "profileTitle": "Профиль",
+    "userNotFound": "Қолданушы табылмады",
+    "unnamedUser": "Оқушы №{{id}}"
+  },
   "home": {
     "errorTitle": "Бір нәрсе дұрыс болмады",
     "errorBody": "Деректерді жүктеу мүмкін болмады. Қайта көріп көр.",
@@ -100,6 +120,8 @@
     "unitDays": "күн",
     "todayPlan": "Бүгінгі жоспар",
     "lessonsCount": "{{count}} сабақ",
+    "lessonSubtitle": "{{subject}} · {{minutes}} мин",
+    "todayEmpty": "Бүгінге жоспарланған сабақ жоқ.",
     "expectedScore": "Күтілетін балл",
     "remaining": "Мақсатқа {{count}} балл қалды",
     "reachedGoal": "Мақсатқа жеттің! 🎉",

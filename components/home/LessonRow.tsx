@@ -4,29 +4,28 @@ import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS } from '@/lib/onboarding-theme';
-import { lessonSubtitle, type LessonItem } from '@/lib/home';
+import { type LessonItem } from '@/lib/home';
 import { Badge } from './Badge';
 
 interface LessonRowProps {
   lesson: LessonItem;
-  onPress: (id: string) => void;
+  onPress: (lesson: LessonItem) => void;
 }
 
-/**
- * A lesson list row: leading icon tile, title + "subject · N сұрақ · N мин",
- * trailing state indicator. Active rows show a "Бастау" badge; done rows a check;
- * todo rows a chevron. Presses scale via PressableScale (design §3).
- */
 export function LessonRow({ lesson, onPress }: LessonRowProps) {
   const { t } = useTranslation();
   const isDone = lesson.state === 'done';
+  const subtitle =
+    lesson.estMinutes > 0
+      ? t('home.lessonSubtitle', { subject: lesson.subject, minutes: lesson.estMinutes })
+      : lesson.subject;
 
   return (
     <PressableScale
       activeScale={0.99}
       accessibilityRole="button"
       accessibilityLabel={lesson.title}
-      onPress={() => onPress(lesson.id)}
+      onPress={() => onPress(lesson)}
       className="flex-row items-center gap-3.5 rounded-md p-3.5 active:bg-surface-tint">
       <View className="h-11 w-11 items-center justify-center rounded-md bg-blue-50">
         <Ionicons name={lesson.icon} size={22} color={COLORS.blue600} />
@@ -39,7 +38,7 @@ export function LessonRow({ lesson, onPress }: LessonRowProps) {
           {lesson.title}
         </Text>
         <Text className="text-[13px] text-ink-500" numberOfLines={1}>
-          {lessonSubtitle(lesson)}
+          {subtitle}
         </Text>
       </View>
 

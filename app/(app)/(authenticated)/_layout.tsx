@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import OnboardingGate from '@/components/OnboardingGate';
 
 export const unstable_settings = {
@@ -7,15 +6,16 @@ export const unstable_settings = {
 };
 
 const Layout = () => {
-  const colorScheme = useColorScheme();
-
   return (
     <OnboardingGate>
       <Stack
         screenOptions={{
+          headerStyle: {
+            backgroundColor: '#ffffff',
+          },
           headerTintColor: '#0d6c9a',
           headerTitleStyle: {
-            color: colorScheme === 'dark' ? '#fff' : '#000',
+            color: '#000000',
           },
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

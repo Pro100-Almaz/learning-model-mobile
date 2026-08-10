@@ -1,8 +1,9 @@
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { COLORS, SHADOW_SOFT } from '@/lib/onboarding-theme';
-import { classSubtitle, type ClassLevel } from '@/lib/learn';
+import { type ClassLevel } from '@/lib/learn';
 import { ProgressBadge } from './ProgressBadge';
 import { ProgressBar } from './ProgressBar';
 
@@ -12,6 +13,7 @@ interface ClassCardProps {
 }
 
 export function ClassCard({ cls, onPress }: ClassCardProps) {
+  const { t } = useTranslation();
   const isDone = cls.progress >= 100;
 
   return (
@@ -28,7 +30,7 @@ export function ClassCard({ cls, onPress }: ClassCardProps) {
             {cls.title}
           </Text>
           <Text className="text-[13px] text-ink-500" numberOfLines={1}>
-            {classSubtitle(cls)}
+            {t('learn.moduleLessonCount', { modules: cls.modules, lessons: cls.lessons })}
           </Text>
         </View>
         <ProgressBadge

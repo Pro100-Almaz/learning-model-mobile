@@ -21,6 +21,7 @@
   "tabs": {
     "home": "Главная",
     "subjects": "Предметы",
+    "friends": "Друзья",
     "profile": "Профиль"
   },
   "login": {
@@ -89,6 +90,25 @@
       "title": "Выбери язык"
     }
   },
+  "friends": {
+    "title": "Друзья",
+    "friendsList": "Список друзей",
+    "requests": "Заявки",
+    "received": "Входящие",
+    "sent": "Отправленные",
+    "searchPlaceholder": "Поиск друзей…",
+    "emptyFriends": "Друзья не найдены",
+    "emptyReceived": "Нет новых заявок",
+    "emptySent": "Нет отправленных заявок",
+    "loadError": "Не удалось загрузить список",
+    "cancelRequest": "Отменить заявку в друзья",
+    "cancel": "Отменить",
+    "reject": "Отклонить заявку",
+    "accept": "Принять заявку",
+    "profileTitle": "Профиль",
+    "userNotFound": "Пользователь не найден",
+    "unnamedUser": "Ученик №{{id}}"
+  },
   "home": {
     "errorTitle": "Что-то пошло не так",
     "errorBody": "Не удалось загрузить данные. Попробуй ещё раз.",
@@ -100,6 +120,8 @@
     "unitDays": "дн.",
     "todayPlan": "План на сегодня",
     "lessonsCount": "{{count}} уроков",
+    "lessonSubtitle": "{{subject}} · {{minutes}} мин",
+    "todayEmpty": "На сегодня уроков нет.",
     "expectedScore": "Ожидаемый балл",
     "remaining": "До цели осталось {{count}} баллов",
     "reachedGoal": "Ты достиг цели! 🎉",

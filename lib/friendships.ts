@@ -46,22 +46,23 @@ export interface FriendRequest {
  * `StudentProfile.username` is nullable, so fall back to something stable rather
  * than rendering an empty row.
  */
-export function displayName(profile: FriendProfileApi): string {
-  return profile.username?.trim() || `Оқушы #${profile.id}`;
+export function displayName(profile: FriendProfileApi, fallback: string): string {
+  return profile.username?.trim() || fallback;
 }
 
-export function toFriend(api: FriendProfileApi): Friend {
-  return { id: api.id, username: displayName(api) };
+export function toFriend(api: FriendProfileApi, fallback: string): Friend {
+  return { id: api.id, username: displayName(api, fallback) };
 }
 
 export function toFriendRequest(
   api: FriendshipApi,
-  direction: RequestDirection
+  direction: RequestDirection,
+  fallback: string
 ): FriendRequest {
   // The other person is whichever side isn't us: the sender on a received
   // request, the receiver on one we sent.
   const other = direction === 'received' ? api.from_profile : api.to_profile;
-  return { id: api.id, user: toFriend(other), direction };
+  return { id: api.id, user: toFriend(other, fallback), direction };
 }
 
 /** First letter for the initials avatar; '?' when the name is unusable. */

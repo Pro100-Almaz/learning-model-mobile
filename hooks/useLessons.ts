@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useApiClient } from "./useApiClient";
+import { toLessonItem, type NextLessonApi } from "@/lib/home";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 import {
   type Lesson,
   type LessonStatus,
@@ -46,6 +48,20 @@ export function useLessons(moduleId: string) {
     queryFn: async () => {
       const raw = await api.get<LessonApi[]>(`/modules/${moduleId}/`);
       return raw.map(toLesson);
+    },
+  });
+}
+
+export const nextLessonsQueryKey = ["lessons", "next"] as const;
+
+export function useNextLessons() {
+  const api = useApiClient();
+  const { language } = useLanguage();
+  return useQuery({
+    queryKey: [...nextLessonsQueryKey, language],
+    queryFn: async () => {
+      const raw = await api.get<NextLessonApi[]>("/lessons/next_lessons/");
+      return raw.map(toLessonItem);
     },
   });
 }

@@ -1,10 +1,10 @@
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import ErrorState from '@/components/ErrorState';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { type HomeViewModel } from '@/lib/home';
+import { type HomeViewModel, type LessonItem } from '@/lib/home';
 import { SHADOW_SOFT } from '@/lib/onboarding-theme';
 import { Badge } from './Badge';
 import { HomeTopBar } from './HomeTopBar';
@@ -19,8 +19,7 @@ interface HomeScreenProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
-  /** Active lesson / hero start. */
-  onStartLesson: (id: string) => void;
+  onStartLesson: (lesson: LessonItem) => void;
   /** Hero "Балдарды көру". */
   onOpenScores: () => void;
   /** Bell. */
@@ -104,13 +103,23 @@ export function HomeScreen({
 
       <SectionHeader
         title={t('home.todayPlan')}
-        trailing={<Badge>{t('home.lessonsCount', { count: todayLessons.length })}</Badge>}
+        trailing={
+          todayLessons.length > 0 ? (
+            <Badge>{t('home.lessonsCount', { count: todayLessons.length })}</Badge>
+          ) : undefined
+        }
       />
 
       <View style={SHADOW_SOFT} className="gap-1 rounded-lg bg-white p-2">
-        {todayLessons.map((lesson) => (
-          <LessonRow key={lesson.id} lesson={lesson} onPress={onStartLesson} />
-        ))}
+        {todayLessons.length > 0 ? (
+          todayLessons.map((lesson) => (
+            <LessonRow key={lesson.id} lesson={lesson} onPress={onStartLesson} />
+          ))
+        ) : (
+          <Text className="p-4 text-center text-[14px] leading-6 text-ink-500">
+            {t('home.todayEmpty')}
+          </Text>
+        )}
       </View>
 
       {tip ? <TipCard title={tip.title} body={tip.body} /> : null}

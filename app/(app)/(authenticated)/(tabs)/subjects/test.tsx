@@ -70,9 +70,12 @@ export default function TestRoute() {
     );
   }
 
-  // No test authored for this lesson yet — its own friendly empty state.
-  const notFound = error instanceof ApiError && error.status === 404;
-  if (notFound) {
+  // No test authored for this lesson yet — either the attempt 404s, or it comes
+  // back with an empty question list. Both get the same friendly empty state.
+  const notReady =
+    (error instanceof ApiError && error.status === 404) ||
+    (!!attempt && attempt.questions.length === 0);
+  if (notReady) {
     return (
       <EmptyState
         icon="document-text-outline"

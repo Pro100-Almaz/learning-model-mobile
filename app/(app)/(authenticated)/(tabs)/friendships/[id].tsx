@@ -1,6 +1,7 @@
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar } from '@/components/friends/Avatar';
 import { ScreenHeader } from '@/components/learn/ScreenHeader';
@@ -18,6 +19,7 @@ export default function FriendProfileRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   // Route params are always strings; the API keys profiles by number.
   const profileId = Number(id);
@@ -25,7 +27,7 @@ export default function FriendProfileRoute() {
 
   return (
     <View className="flex-1 bg-surface-app" style={{ paddingTop: insets.top }}>
-      <ScreenHeader title={person?.username ?? 'Профиль'} onBack={() => router.back()} />
+      <ScreenHeader title={person?.username ?? t('friends.profileTitle')} onBack={() => router.back()} />
 
       {isLoading && !person ? (
         <View className="flex-1 items-center justify-center">
@@ -47,14 +49,19 @@ export default function FriendProfileRoute() {
 
           {/* Placeholder stats until a public profile endpoint exists */}
           <View className="flex-row gap-3">
-            <StatCard label="Streak" value="8" unit="күн" icon="flame" />
-            <StatCard label="Сабақ" value="42" icon="book-outline" />
-            <StatCard label="Орын" value="#12" icon="trophy-outline" />
+            <StatCard
+              label={t('profile.stats.streak')}
+              value="8"
+              unit={t('profile.unitDays')}
+              icon="flame"
+            />
+            <StatCard label={t('profile.stats.lessons')} value="42" icon="book-outline" />
+            <StatCard label={t('profile.stats.rank')} value="#12" icon="trophy-outline" />
           </View>
         </ScrollView>
       ) : (
         <View className="flex-1 items-center justify-center px-4">
-          <Text className="font-body text-base text-ink-500">Қолданушы табылмады</Text>
+          <Text className="font-body text-base text-ink-500">{t('friends.userNotFound')}</Text>
         </View>
       )}
     </View>

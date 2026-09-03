@@ -4,7 +4,7 @@ import { useApiClient } from './useApiClient';
 import { type Progress } from '@/lib/learn';
 import { getSubjectTheme } from '@/lib/subject-theme';
 import { type Subject } from '@/lib/learn';
-
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export const subjectsQueryKey = ['subjects'] as const;
 export const allSubjectsQueryKey = ['subjects', 'all'] as const;
@@ -19,8 +19,9 @@ export interface SubjectApi {
 
 export function useSubjects() {
   const api = useApiClient();
+  const { language } = useLanguage();
   return useQuery({
-    queryKey: subjectsQueryKey,
+    queryKey: [...subjectsQueryKey, language],
     queryFn: async () => {
           const raw = await api.get<SubjectApi[]>('/subjects/');
           return raw.map(toSubject);
@@ -30,8 +31,9 @@ export function useSubjects() {
 
 export function useAllSubjects() {
   const api = useApiClient();
+  const { language } = useLanguage();
   return useQuery({
-    queryKey: allSubjectsQueryKey,
+    queryKey: [...allSubjectsQueryKey, language],
     queryFn: async () => {
           const raw = await api.get<SubjectApi[]>('/subjects/all/');
           return raw.map(toSubject);

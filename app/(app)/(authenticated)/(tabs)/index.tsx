@@ -1,7 +1,11 @@
 import { useCallback } from 'react';
+import { useRouter } from 'expo-router';
 
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { useDashboard } from '@/hooks/useDashboard';
+import type { LessonItem } from '@/lib/home';
+
+const LESSON = '/(app)/(authenticated)/(tabs)/subjects/lesson' as const;
 
 /**
  * Home tab (Басты). Owns the data (useDashboard) and navigation callbacks; the
@@ -9,9 +13,21 @@ import { useDashboard } from '@/hooks/useDashboard';
  */
 export default function HomeRoute() {
   const { vm, isLoading, isError, refetch } = useDashboard();
+  const router = useRouter();
 
-  // TODO: wire to the Practice quiz flow once that route exists.
-  const onStartLesson = useCallback((_id: string) => {}, []);
+  const onStartLesson = useCallback(
+    (lesson: LessonItem) => {
+      router.push({
+        pathname: LESSON,
+        params: {
+          subjectId: lesson.subjectId,
+          moduleId: lesson.moduleId,
+          lessonId: lesson.lessonId,
+        },
+      });
+    },
+    [router]
+  );
 
   // TODO: switch to the Scores tab (Балдар) once that route exists.
   const onOpenScores = useCallback(() => {}, []);

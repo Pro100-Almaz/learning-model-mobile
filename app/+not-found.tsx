@@ -1,4 +1,4 @@
-import { Link, Stack } from 'expo-router';
+import { Link } from 'expo-router';
 import { View, Text } from 'react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

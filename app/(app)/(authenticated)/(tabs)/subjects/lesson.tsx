@@ -14,12 +14,11 @@ import { useLessonDetail } from '@/hooks/useLessons';
 
 const TEST = '/(app)/(authenticated)/(tabs)/subjects/test' as const;
 
-/** Lesson detail. See docs/subject_lesson_pages.md §1, §3. */
 export default function LessonRoute() {
   const { subjectId, classId, moduleId, lessonId } = useLocalSearchParams<{
-    subjectId: string;
-    classId: string;
-    moduleId: string;
+    subjectId?: string;
+    classId?: string;
+    moduleId?: string;
     lessonId: string;
   }>();
   const { router, back, popScreens } = useLearnNav();
@@ -28,9 +27,9 @@ export default function LessonRoute() {
   const { data: subjects, isLoading: subjectsLoading } = useSubjects();
   const { data: classes, isLoading: classesLoading } = useClasses(subjectId);
   const { data: modules, isLoading: modulesLoading } = useModules(classId);
-  const subject = subjectById(subjects ?? [], subjectId);
-  const cls = classById(classes ?? [], classId);
-  const module = moduleById(modules ?? [], moduleId);
+  const subject = subjectId ? subjectById(subjects ?? [], subjectId) : undefined;
+  const cls = classId ? classById(classes ?? [], classId) : undefined;
+  const module = moduleId ? moduleById(modules ?? [], moduleId) : undefined;
   const { data: lesson, isLoading: lessonLoading } = useLessonDetail(lessonId);
 
   const onTest = useCallback(() => {
@@ -41,7 +40,7 @@ export default function LessonRoute() {
         lessonId,
       },
     });
-  }, [router, subjectId, classId, moduleId, lessonId, lesson?.title]);
+  }, [router, lessonId, lesson?.title, t]);
 
   // Show a spinner while any query is still loading — otherwise a not-yet-resolved
   // id looks identical to a genuinely missing one and we'd flash "Not found".
@@ -53,17 +52,21 @@ export default function LessonRoute() {
     );
   }
 
-  // Loading has settled: a falsy value now means the id really didn't resolve.
-  if (!subject || !cls || !module || !lesson) return <MissingScreen onBack={back} />;
+  if (!lesson) return <MissingScreen onBack={back} />;
+
+  const breadcrumb =
+    subject && cls && module
+      ? [
+          { label: subject.title, pop: 3 },
+          { label: cls.title, pop: 2 },
+          { label: module.title, pop: 1 },
+        ]
+      : [];
 
   return (
     <LessonDetailScreen
       lesson={lesson}
-      breadcrumb={[
-        { label: subject.title, pop: 3 },
-        { label: cls.title, pop: 2 },
-        { label: module.title, pop: 1 },
-      ]}
+      breadcrumb={breadcrumb}
       onBack={back}
       onCrumb={popScreens}
       onTest={onTest}

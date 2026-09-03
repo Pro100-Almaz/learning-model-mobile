@@ -1,5 +1,6 @@
 import { TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '@/lib/onboarding-theme';
 
@@ -10,14 +11,16 @@ interface SearchBarProps {
 }
 
 /** Rounded search field used at the top of the Friends tab. */
-export function SearchBar({ value, onChangeText, placeholder = 'Іздеу' }: SearchBarProps) {
+export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="h-12 flex-row items-center gap-2 rounded-pill bg-surface-field px-4">
       <Ionicons name="search" size={20} color={COLORS.ink500} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('friends.searchPlaceholder')}
         placeholderTextColor={COLORS.ink300}
         className="flex-1 font-body text-base text-ink-900"
         autoCapitalize="none"

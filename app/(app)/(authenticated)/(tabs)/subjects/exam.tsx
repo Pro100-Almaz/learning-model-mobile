@@ -10,6 +10,7 @@ import { PressableScale } from '@/components/onboarding/PressableScale';
 import { LadderExamScreen } from '@/components/learn/screens/LadderExamScreen';
 import { useLearnNav } from '@/hooks/useLearnNav';
 import { useLadderNext, useStartLadder } from '@/hooks/useLadderExam';
+import { gamificationQueryKey } from '@/hooks/useGamification';
 import { ApiError } from '@/lib/api';
 import { COLORS, SHADOW_CTA } from '@/lib/onboarding-theme';
 
@@ -37,7 +38,7 @@ export default function ExamRoute() {
   const onExit = useCallback(() => {
     if (moduleId) queryClient.invalidateQueries({ queryKey: [moduleId, 'lessons'] });
     if (classId) queryClient.invalidateQueries({ queryKey: [classId, 'modules'] });
-    queryClient.invalidateQueries({queryKey: gamificationQueryKey})
+    queryClient.invalidateQueries({ queryKey: gamificationQueryKey });
     back();
   }, [queryClient, moduleId, classId, back]);
 

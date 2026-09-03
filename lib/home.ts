@@ -2,12 +2,11 @@
 //
 // The screen renders from a `HomeViewModel` (see docs/home-page.md §5) so it can
 // swap to a real API/React-Query source later without touching the components.
-// Today the score/target come from the user's onboarding profile when available
-// and the rest is mock demo content.
 
 import type { Ionicons } from '@expo/vector-icons';
 import { ENT_MAX_SCORE } from '@/lib/ent';
-import type { Profile } from '@/lib/types';
+import { getSubjectTheme } from '@/lib/subject-theme';
+import type { Profile, Gamification } from '@/lib/types';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -26,15 +25,53 @@ export type LessonState = 'active' | 'todo' | 'done';
 
 export interface LessonItem {
   id: string;
+  lessonId: string;
+  subjectId: string;
+  moduleId: string;
   /** e.g. "Квадрат теңдеулер". */
   title: string;
   /** e.g. "Математика". */
   subject: string;
   /** Ionicons glyph name for the leading tile. */
   icon: IoniconName;
-  questionCount: number;
   estMinutes: number;
   state: LessonState;
+}
+
+// --- GET /lessons/next_lessons/ ----------------------------------------------
+
+export interface NextLessonApi {
+  id: number | string;
+  /** ISO date (YYYY-MM-DD) the item is planned for. */
+  date: string;
+  status: 'todo' | 'done';
+  subject: {
+    id: number | string;
+    name: string;
+    slug: string;
+  };
+  lesson: {
+    id: number | string;
+    module_id: number | string;
+    title: string;
+    duration_sec: number;
+    status?: 'todo' | 'done';
+  };
+}
+
+export function toLessonItem(r: NextLessonApi): LessonItem {
+  const sec = r.lesson.duration_sec;
+  return {
+    id: String(r.id),
+    lessonId: String(r.lesson.id),
+    subjectId: String(r.subject.id),
+    moduleId: String(r.lesson.module_id),
+    title: r.lesson.title,
+    subject: r.subject.name,
+    icon: getSubjectTheme(r.subject.slug).icon,
+    estMinutes: sec > 0 ? Math.max(1, Math.round(sec / 60)) : 0,
+    state: (r.status ?? r.lesson.status) === 'done' ? 'done' : 'todo',
+  };
 }
 
 export interface HomeViewModel {
@@ -67,13 +104,7 @@ export function formatNumber(n: number): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-/** "Математика · 12 сұрақ · 15 мин" */
-export function lessonSubtitle(lesson: LessonItem): string {
-  return `${lesson.subject} · ${lesson.questionCount} сұрақ · ${lesson.estMinutes} мин`;
-}
-
 // --- Mock / demo content -----------------------------------------------------
-// Swap for an API/React-Query source later; see hooks/useDashboard.ts.
 
 /** Demo stats used when the profile has no expected/target scores yet. */
 const DEMO_STATS = {
@@ -81,53 +112,20 @@ const DEMO_STATS = {
   targetScore: 120,
 } as const;
 
-const MOCK_LESSONS: LessonItem[] = [
-  {
-    id: 'quadratic-equations',
-    title: 'Квадрат теңдеулер',
-    subject: 'Математика',
-    icon: 'calculator-outline',
-    questionCount: 12,
-    estMinutes: 15,
-    state: 'active',
-  },
-  {
-    id: 'newton-laws',
-    title: 'Ньютон заңдары',
-    subject: 'Физика',
-    icon: 'planet-outline',
-    questionCount: 10,
-    estMinutes: 12,
-    state: 'todo',
-  },
-  {
-    id: 'kazakh-khanate',
-    title: 'Қазақ хандығы',
-    subject: 'Қазақстан тарихы',
-    icon: 'business-outline',
-    questionCount: 8,
-    estMinutes: 10,
-    state: 'done',
-  },
-];
-
 const MOCK_TIP = {
   title: 'Күн кеңесі',
   body: 'Қиын тақырыпты күн сайын 20 минуттан қайтала — қысқа әрі жиі оқу нәтижені арттырады.',
 };
 
-/**
- * Build the home view-model. Score/target come from the onboarding profile when
- * the student has filled them in; everything else is demo content for now.
- */
 export function buildHomeViewModel(args: {
   name: string;
   avatarUrl?: string;
   profile: Profile;
-  gamification: Gamification;
+  gamification: Gamification | undefined;
+  todayLessons: LessonItem[];
   now?: Date;
 }): HomeViewModel {
-  const { name, avatarUrl, profile, gamification, now } = args;
+  const { name, avatarUrl, profile, gamification, todayLessons, now } = args;
 
   const derivedExpected = profile.expected_scores.reduce(
     (sum, e) => sum + (e.score || 0),
@@ -148,10 +146,10 @@ export function buildHomeViewModel(args: {
       expectedScore,
       targetScore,
       maxScore: ENT_MAX_SCORE,
-      streakDays: gamification.streak.current,
+      streakDays: gamification?.streak.current || 0,
       daysUntilExam: daysUntilExam(now),
     },
-    todayLessons: MOCK_LESSONS,
+    todayLessons,
     tip: MOCK_TIP,
   };
 }

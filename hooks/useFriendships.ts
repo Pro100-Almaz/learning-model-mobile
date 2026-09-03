@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { useApiClient } from './useApiClient';
 import { useProfile } from './useProfile';
@@ -26,11 +27,13 @@ const friendsPath = (profileId: number) => `/friendships/friends/${profileId}/`;
 const requestsPath = (profileId: number, direction: RequestDirection) =>
   `/friendships/requests/${profileId}/?direction=${direction}`;
 
-export const friendsQueryKey = (profileId?: number) => ['friends', profileId] as const;
+export const friendsQueryKey = (profileId?: number, language?: string) =>
+  ['friends', profileId, language] as const;
 export const friendRequestsQueryKey = (
   profileId?: number,
-  direction?: RequestDirection
-) => ['friend-requests', profileId, direction] as const;
+  direction?: RequestDirection,
+  language?: string
+) => ['friend-requests', profileId, direction, language] as const;
 
 /**
  * The current user's StudentProfile id. Every friendships endpoint is keyed by it
@@ -45,15 +48,19 @@ export function useMyProfileId(): number | undefined {
 export function useFriends() {
   const api = useApiClient();
   const profileId = useMyProfileId();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage;
 
   return useQuery({
-    queryKey: friendsQueryKey(profileId),
+    queryKey: friendsQueryKey(profileId, language),
     enabled: profileId != null,
     queryFn: DEV_BYPASS_AUTH
       ? async () => MOCK_FRIENDS
       : async () => {
           const raw = await api.get<FriendProfileApi[]>(friendsPath(profileId!));
-          return raw.map(toFriend);
+          return raw.map((friend) =>
+            toFriend(friend, t('friends.unnamedUser', { id: friend.id }))
+          );
         },
   });
 }
@@ -62,15 +69,25 @@ export function useFriends() {
 export function useFriendRequests(direction: RequestDirection) {
   const api = useApiClient();
   const profileId = useMyProfileId();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage;
 
   return useQuery({
-    queryKey: friendRequestsQueryKey(profileId, direction),
+    queryKey: friendRequestsQueryKey(profileId, direction, language),
     enabled: profileId != null,
     queryFn: DEV_BYPASS_AUTH
       ? async () => (direction === 'sent' ? MOCK_SENT_REQUESTS : MOCK_RECEIVED_REQUESTS)
       : async () => {
           const raw = await api.get<FriendshipApi[]>(requestsPath(profileId!, direction));
-          return raw.map((f) => toFriendRequest(f, direction));
+          return raw.map((friendship) => {
+            const other =
+              direction === 'received' ? friendship.from_profile : friendship.to_profile;
+            return toFriendRequest(
+              friendship,
+              direction,
+              t('friends.unnamedUser', { id: other.id })
+            );
+          });
         },
   });
 }

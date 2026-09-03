@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { SearchBar } from './SearchBar';
 import { Segmented } from './Segmented';
@@ -60,6 +61,7 @@ export function FriendsScreen({
   onReject,
 }: FriendsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const visibleFriends = useMemo(
     () => friends.filter((f) => matches(f.username, query)),
@@ -74,23 +76,23 @@ export function FriendsScreen({
   const isEmpty = activeTab === 'friends' ? visibleFriends.length === 0 : visibleRequests.length === 0;
   const emptyText =
     activeTab === 'friends'
-      ? 'Дос табылмады'
+      ? t('friends.emptyFriends')
       : requestDir === 'received'
-        ? 'Жаңа сұраныс жоқ'
-        : 'Жіберілген сұраныс жоқ';
+        ? t('friends.emptyReceived')
+        : t('friends.emptySent');
 
   return (
     <View className="flex-1 bg-surface-app">
       {/* Fixed chrome */}
       <View className="gap-3 px-4 pb-3" style={{ paddingTop: insets.top + 12 }}>
-        <Text className="font-display text-[28px] text-ink-900">Достар</Text>
+        <Text className="font-display text-[28px] text-ink-900">{t('friends.title')}</Text>
 
         <SearchBar value={query} onChangeText={onChangeQuery} />
 
         <Segmented<FriendsTab>
           options={[
-            { value: 'friends', label: 'Достар тізімі' },
-            { value: 'requests', label: 'Сұраныстар' },
+            { value: 'friends', label: t('friends.friendsList') },
+            { value: 'requests', label: t('friends.requests') },
           ]}
           value={activeTab}
           onChange={onChangeTab}
@@ -99,8 +101,8 @@ export function FriendsScreen({
         {activeTab === 'requests' ? (
           <Segmented<RequestDirection>
             options={[
-              { value: 'received', label: 'Келген' },
-              { value: 'sent', label: 'Жіберілген' },
+              { value: 'received', label: t('friends.received') },
+              { value: 'sent', label: t('friends.sent') },
             ]}
             value={requestDir}
             onChange={onChangeRequestDir}
@@ -121,7 +123,7 @@ export function FriendsScreen({
           </View>
         ) : isError ? (
           <View className="pt-6">
-            <ErrorState title="Тізімді жүктеу мүмкін болмады" onRetry={onRetry} />
+            <ErrorState title={t('friends.loadError')} onRetry={onRetry} />
           </View>
         ) : isEmpty ? (
           <EmptyState text={emptyText} />

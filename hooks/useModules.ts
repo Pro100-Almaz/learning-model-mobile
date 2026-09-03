@@ -15,9 +15,10 @@ export interface ModuleApi {
   progress: Progress;
 }
 
-export function useModules(classId: string) {
+export function useModules(classId: string | undefined) {
   const api = useApiClient();
   return useQuery({
+    enabled: !!classId,
     queryKey: [classId, "modules"],
     queryFn: async () => {
       const raw = await api.get<ModuleApi[]>(

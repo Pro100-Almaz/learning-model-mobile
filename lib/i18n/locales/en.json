@@ -21,6 +21,7 @@
   "tabs": {
     "home": "Home",
     "subjects": "Subjects",
+    "friends": "Friends",
     "profile": "Profile"
   },
   "login": {
@@ -89,6 +90,25 @@
       "title": "Choose language"
     }
   },
+  "friends": {
+    "title": "Friends",
+    "friendsList": "Friends list",
+    "requests": "Requests",
+    "received": "Received",
+    "sent": "Sent",
+    "searchPlaceholder": "Search friends…",
+    "emptyFriends": "No friends found",
+    "emptyReceived": "No new requests",
+    "emptySent": "No sent requests",
+    "loadError": "Could not load the list",
+    "cancelRequest": "Cancel friend request",
+    "cancel": "Cancel",
+    "reject": "Reject friend request",
+    "accept": "Accept friend request",
+    "profileTitle": "Profile",
+    "userNotFound": "User not found",
+    "unnamedUser": "Student #{{id}}"
+  },
   "home": {
     "errorTitle": "Something went wrong",
     "errorBody": "Could not load the data. Please try again.",
@@ -100,6 +120,8 @@
     "unitDays": "days",
     "todayPlan": "Today's plan",
     "lessonsCount": "{{count}} lessons",
+    "lessonSubtitle": "{{subject}} · {{minutes}} min",
+    "todayEmpty": "Nothing planned for today.",
     "expectedScore": "Expected score",
     "remaining": "{{count}} points to your goal",
     "reachedGoal": "You reached your goal! 🎉",

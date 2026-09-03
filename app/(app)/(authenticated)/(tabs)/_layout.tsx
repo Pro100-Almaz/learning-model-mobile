@@ -1,7 +1,23 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StackActions, type NavigationProp, type ParamListBase } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import BlurTabBarBackground from '@/components/TabBarBackground.ios';
+
+function popToTopOnActiveTabPress(tab: string) {
+  return ({ navigation }: { navigation: NavigationProp<ParamListBase> }) => ({
+    tabPress: () => {
+      const state = navigation.getState();
+      const active = state?.routes[state.index];
+      if (active?.name !== tab) return;
+
+      const nested = active.state;
+      if (!nested?.key || (nested.index ?? 0) === 0) return;
+
+      navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
+    },
+  });
+}
 
 // https://github.com/EvanBacon/expo-router-forms-components/blob/main/components/ui/Tabs.tsx
 export default function TabLayout() {
@@ -17,12 +33,18 @@ export default function TabLayout() {
               tabBarBackground: BlurTabBarBackground,
               tabBarStyle: {
                 position: 'absolute',
+                backgroundColor: 'transparent',
               },
+              headerStyle: { backgroundColor: '#ffffff' },
+              headerTintColor: '#000000',
             }
           : {
               tabBarActiveTintColor: '#4d13ee',
               tabBarInactiveTintColor: '#8E8E93',
               headerShown: true,
+              tabBarStyle: { backgroundColor: '#ffffff' },
+              headerStyle: { backgroundColor: '#ffffff' },
+              headerTintColor: '#000000',
             }
       }>
       <Tabs.Screen
@@ -42,14 +64,16 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
         }}
+        listeners={popToTopOnActiveTabPress('subjects')}
       />
       <Tabs.Screen
         name="friendships"
         options={{
-          title: 'Достар',
+          title: t('tabs.friends'),
           headerShown: false,
           tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
         }}
+        listeners={popToTopOnActiveTabPress('friendships')}
       />
       <Tabs.Screen
         name="profile"

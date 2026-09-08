@@ -56,6 +56,9 @@ export function ClassesScreen({
           keyExtractor={(c) => c.id}
           contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 96 }}
           showsVerticalScrollIndicator={false}
+          // Android/Fabric: clipped-child bookkeeping desyncs when the list
+          // unmounts on pop → IndexOutOfBoundsException → host destroy (blank).
+          removeClippedSubviews={false}
           ListEmptyComponent={
             <LearnEmptyState
               icon="book-outline"

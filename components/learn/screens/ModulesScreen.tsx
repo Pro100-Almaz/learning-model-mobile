@@ -57,6 +57,9 @@ export function ModulesScreen({
           keyExtractor={(u) => u.id}
           contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: tabBarHeight + 84 }}
           showsVerticalScrollIndicator={false}
+          // Android/Fabric: clipped-child bookkeeping desyncs when the list
+          // unmounts on pop → IndexOutOfBoundsException → host destroy (blank).
+          removeClippedSubviews={false}
           ListHeaderComponent={
             <View className="mb-2">
               <ClassSummaryCard cls={cls} reduceMotion={reduceMotion} />

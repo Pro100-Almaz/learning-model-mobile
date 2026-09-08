@@ -139,6 +139,9 @@ export default function SearchSelect<T extends string | number>({
             data={filtered}
             keyExtractor={(item) => String(item.value)}
             keyboardShouldPersistTaps="handled"
+            // Android/Fabric: clipped-child bookkeeping desyncs when the list
+            // unmounts → IndexOutOfBoundsException → host destroy (blank).
+            removeClippedSubviews={false}
             contentContainerClassName="px-4 py-2"
             ListEmptyComponent={
               <Text className="p-6 text-center font-body text-ink-300">

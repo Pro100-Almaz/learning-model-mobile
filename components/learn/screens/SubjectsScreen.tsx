@@ -43,6 +43,11 @@ export function SubjectsScreen({ subjects, isLoading, onOpenSubject }: SubjectsS
           columnWrapperStyle={{ gap: 12 }}
           contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: insets.bottom + 24 }}
           showsVerticalScrollIndicator={false}
+          // Android/Fabric: FlatList defaults this to true, and the clipped-child
+          // bookkeeping desyncs when the list unmounts on stack pop —
+          // ReactViewGroup.removeViewsInLayout throws IndexOutOfBoundsException,
+          // which RN escalates to a host destroy, blanking the whole surface.
+          removeClippedSubviews={false}
           renderItem={({ item }) =>
             isSpacer(item) ? (
               <View style={{ flex: 1, minWidth: 0 }} />

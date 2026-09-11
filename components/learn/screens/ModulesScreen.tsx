@@ -1,8 +1,8 @@
 import { FlatList, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useTabBarOverlap } from '@/hooks/useTabBarOverlap';
 import type { ClassLevel, Module } from '@/lib/learn';
 import { type BreadcrumbItem } from '../Breadcrumb';
 import { ClassSummaryCard } from '../ClassSummaryCard';
@@ -37,7 +37,7 @@ export function ModulesScreen({
   onTest,
 }: ModulesScreenProps) {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarOverlap = useTabBarOverlap();
   const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
 
@@ -55,7 +55,7 @@ export function ModulesScreen({
         <FlatList
           data={modules}
           keyExtractor={(u) => u.id}
-          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: tabBarHeight + 84 }}
+          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: tabBarOverlap + 84 }}
           showsVerticalScrollIndicator={false}
           // Android/Fabric: clipped-child bookkeeping desyncs when the list
           // unmounts on pop → IndexOutOfBoundsException → host destroy (blank).

@@ -1,8 +1,8 @@
 import { ScrollView, Text, View } from "react-native";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useTabBarOverlap } from "@/hooks/useTabBarOverlap";
 import { SHADOW_SOFT } from "@/lib/onboarding-theme";
 import {
   lessonDetailMeta,
@@ -39,7 +39,7 @@ export function LessonDetailScreen({
 }: LessonDetailScreenProps) {
   const embedUrl = videoEmbedUrl(lesson.videoUrl, lesson.provider);
   const poster = videoThumbnail(lesson.videoUrl, lesson.provider);
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarOverlap = useTabBarOverlap();
   const reduceMotion = useReducedMotion();
   const started = lesson.progress > 0;
   const insets = useSafeAreaInsets();
@@ -61,7 +61,7 @@ export function LessonDetailScreen({
         contentContainerStyle={{
           padding: 16,
           gap: 16,
-          paddingBottom: tabBarHeight + 96,
+          paddingBottom: tabBarOverlap + 96,
         }}
         showsVerticalScrollIndicator={false}
       >

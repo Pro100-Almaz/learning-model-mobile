@@ -1,6 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useApiClient } from "./useApiClient";
+import { gamificationQueryKey } from "./useGamification";
 import {
   toTestAttempt,
   toTestResult,
@@ -77,6 +78,7 @@ export function useTestReview(
 
 export function useFinishTest() {
   const api = useApiClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (vars: {
       attemptId: number;
@@ -86,6 +88,13 @@ export function useFinishTest() {
         answers: vars.answers,
       });
       return toTestResult(raw);
+    },
+    // Finishing a test awards XP and can extend the streak, so the gamification
+    // entry Home and Profile share is now stale. The module exam does the same
+    // on exit (see subjects/exam.tsx); without this, a lesson test left both
+    // screens showing the pre-test streak.
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: gamificationQueryKey });
     },
   });
 }

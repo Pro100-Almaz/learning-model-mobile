@@ -194,6 +194,7 @@
     "review": "Review",
     "reviewLoadError": "Could not load the review. Please try again.",
     "explanation": "Explanation",
+    "noExplanation": "There's no explanation for this question yet.",
     "likelyMistake": "Likely mistake",
     "questions": "Questions",
     "questionsList": "Question list",

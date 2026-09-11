@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +20,17 @@ export default function SettingsScreen() {
   const { language, setLanguage, languages, labels } = useLanguage();
 
   const [languageOpen, setLanguageOpen] = useState(false);
+
+  // The sheet is no longer a <Modal>, so the Android back button would pop the
+  // whole screen instead of dismissing it. Intercept it while it's open.
+  useEffect(() => {
+    if (!languageOpen) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setLanguageOpen(false);
+      return true;
+    });
+    return () => sub.remove();
+  }, [languageOpen]);
 
   const chooseLanguage = (lang: AppLanguage) => {
     void setLanguage(lang);
@@ -86,14 +97,22 @@ export default function SettingsScreen() {
         </PressableScale>
       </View>
 
-      {/* Language picker */}
-      <Modal
-        visible={languageOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLanguageOpen(false)}>
+      {/*
+        Language picker. Deliberately an in-screen overlay rather than a
+        <Modal>: on Android/Fabric the modal host hands its React content a 0×0
+        layout, so the sheet both collapses (invisible, since `transparent`
+        makes Android clear FLAG_DIM_BEHIND) and stops receiving touches —
+        Android won't dispatch to children drawn outside their parent's bounds.
+        The screen owns its header (`headerShown: false`), so an absolutely
+        positioned overlay covers everything a dialog would have.
+      */}
+      {languageOpen ? (
         <Pressable
-          className="flex-1 justify-end bg-black/40"
+          // No `elevation` here: the overlay is a sibling of the ScrollView and
+          // comes later in the tree, so it already paints above the cards
+          // inside it — and an elevation shadow on a full-screen view darkens
+          // the scrim's left/right edges.
+          className="absolute bottom-0 left-0 right-0 top-0 z-10 justify-end bg-black/40"
           accessibilityRole="button"
           accessibilityLabel={t('common.close')}
           onPress={() => setLanguageOpen(false)}>
@@ -125,7 +144,7 @@ export default function SettingsScreen() {
             })}
           </Pressable>
         </Pressable>
-      </Modal>
+      ) : null}
     </View>
   );
 }

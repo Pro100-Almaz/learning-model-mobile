@@ -142,6 +142,8 @@ export function LadderExamScreen({
         ) : null}
 
         <MathText
+          // See TestScreen: not keyed, so the loaded page is reused and the next
+          // prompt is injected rather than triggering a reload.
           value={question.text}
           fontSize={16}
           color={COLORS.ink900}

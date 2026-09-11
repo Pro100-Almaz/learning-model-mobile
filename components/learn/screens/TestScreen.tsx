@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  type GestureResponderEvent,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -310,6 +320,9 @@ export function TestScreen({
         ) : null}
 
         <MathText
+          // Deliberately NOT keyed by question: reusing the instance is what
+          // lets MathText inject the next prompt into its already-loaded page
+          // instead of remounting into a fresh, blank WebView.
           value={question.text}
           fontSize={16}
           color={COLORS.ink900}
@@ -420,6 +433,55 @@ export function TestScreen({
 
 const DANGER = '#E5484D';
 
+/**
+ * Rough height of the block a card reveals when its explanation opens. Used to
+ * decide whether opening would push the new content under the sticky footer —
+ * it only has to be in the right ballpark, since being a little conservative
+ * just means scrolling when it wasn't strictly needed.
+ */
+const REVEAL_ROOM = 140;
+
+/**
+ * Widens the rectangle a press is allowed to wander out of before Pressability
+ * gives up on it.
+ *
+ * Pressability measures the row once, at press-in, and the moment a later touch
+ * sample lands outside that rectangle it abandons the press: it fires
+ * `onPressOut` and never `onPress`. The rectangle goes stale easily in this
+ * list — the cards shift as their KaTeX WebViews report real heights, and the
+ * scroll offset it is measured against lags behind the finger — so on a real
+ * press, which rests on the row rather than tapping it instantly, the row went
+ * dead mid-press. (Measured on device: an instant tap toggled, a ~900ms hold
+ * did not; and the further down the list, the worse it got.) A wide retention
+ * rect is not a hit rect, so the row still can't steal taps meant for anything
+ * else.
+ *
+ * It is only a cushion for the `onPress` fallback, though — widening it was not
+ * enough on its own. Both what the row *does* and how it *looks* while held run
+ * off the raw touch stream instead; see `TAP_SLOP`.
+ */
+const PRESS_RETENTION = { top: 1000, bottom: 1000, left: 100, right: 100 };
+
+/**
+ * How far the finger may travel and still count as a tap on the toggle.
+ *
+ * The card toggles on touch-end rather than on `onPress`, because the touch
+ * stream carries no cached geometry: nothing to go stale, so no press can be
+ * silently abandoned no matter how long it is held or how far down the list it
+ * is. The only thing we have to rule out ourselves is a drag, hence the slop —
+ * and a drag that becomes a scroll never reaches touch-end anyway, since the
+ * ScrollView taking over cancels the child's touches.
+ */
+const TAP_SLOP = 12;
+
+/**
+ * Window in which a second toggle for the same tap is ignored. `onPress` still
+ * fires for the presses Pressability doesn't abandon (and for an assistive
+ * tap, which sends no touches), so both paths stay wired and the first one to
+ * arrive wins.
+ */
+const TOGGLE_DEBOUNCE_MS = 300;
+
 function ReviewView({
   title,
   review,
@@ -437,6 +499,31 @@ function ReviewView({
 }) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const viewportH = useRef(0);
+  // The "back" bar is absolutely positioned over the list, so this much of the
+  // bottom is covered even once content has scrolled into the viewport.
+  const footerH = insets.bottom + 96;
+
+  // A card opened near the bottom edge reveals its explanation *behind* that
+  // bar — and on a half-covered row even the chevron flip is invisible, so the
+  // tap reads as ignored. Lift the toggle up whenever there isn't room below it
+  // to show what it just revealed.
+  // Nudge by exactly the shortfall rather than pulling the row to the top: the
+  // reader keeps their place, and a `y` we failed to measure reads as "already
+  // visible" and moves nothing, instead of flinging the list to the start.
+  const revealToggle = useCallback(
+    (y: number) => {
+      if (!viewportH.current) return;
+      const shortfall = y + REVEAL_ROOM - (scrollY.current + viewportH.current - footerH);
+      if (shortfall <= 0) return;
+      scrollRef.current?.scrollTo({ y: scrollY.current + shortfall, animated: true });
+    },
+    [footerH]
+  );
+
   return (
     <View className="flex-1 bg-surface-app">
       <View style={{ paddingTop: insets.top }} className="bg-surface-app">
@@ -445,14 +532,22 @@ function ReviewView({
 
       {review ? (
         <ScrollView
+          ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 96 }}
-          showsVerticalScrollIndicator={false}>
+          contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: footerH }}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onLayout={(e) => {
+            viewportH.current = e.nativeEvent.layout.height;
+          }}
+          onScroll={(e) => {
+            scrollY.current = e.nativeEvent.contentOffset.y;
+          }}>
           <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-blue-600">
             {title}
           </Text>
           {review.items.map((item, i) => (
-            <ReviewItemCard key={item.questionId} item={item} index={i} />
+            <ReviewItemCard key={item.questionId} item={item} index={i} onReveal={revealToggle} />
           ))}
         </ScrollView>
       ) : error ? (
@@ -501,11 +596,74 @@ function ReviewView({
  * key (correct = green ✓, the user's wrong pick = red ✗), and a collapsible
  * explanation revealed by the chevron below.
  */
-function ReviewItemCard({ item, index }: { item: ReviewItem; index: number }) {
+function ReviewItemCard({
+  item,
+  index,
+  onReveal,
+}: {
+  item: ReviewItem;
+  index: number;
+  /** Asks the list to scroll the toggle (at content offset `y`) into view. */
+  onReveal: (y: number) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const { t } = useTranslation();
+  // The API types these as strings, but it sends "" (and, in practice,
+  // whitespace) when a question has no write-up — trim so those don't count as
+  // content and render an empty box.
+  const explanation = item.explanation?.trim();
+  const mistakeReason = item.mistakeReason?.trim();
+
+  // Where the toggle sits in the scroll content, kept as the card's own offset
+  // plus the toggle's offset inside it. Refs, not state: this is only read at
+  // press time and re-rendering on every layout pass would be wasted work.
+  const cardY = useRef(0);
+  const toggleY = useRef(0);
+
+  const lastToggleAt = useRef(0);
+  const toggle = () => {
+    const now = Date.now();
+    if (now - lastToggleAt.current < TOGGLE_DEBOUNCE_MS) return;
+    lastToggleAt.current = now;
+    const next = !expanded;
+    setExpanded(next);
+    if (next) onReveal(cardY.current + toggleY.current);
+  };
+
+  // Start of the current touch, or null once it ended or was cancelled (which
+  // is what a scroll arrives as).
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  // The held-down tint. Ours rather than Pressable's `active:` variant, which
+  // is tied to the same press Pressability keeps abandoning — that is why the
+  // row used to go un-highlighted a few hundred ms into a hold. Driven by the
+  // touch stream, it stays lit for exactly as long as the finger is down, and
+  // clears on the cancel that a scroll taking over delivers.
+  const [pressed, setPressed] = useState(false);
+  const onTouchStart = (e: GestureResponderEvent) => {
+    touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+    setPressed(true);
+  };
+  const onTouchEnd = (e: GestureResponderEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    setPressed(false);
+    if (start == null) return;
+    const { pageX, pageY } = e.nativeEvent;
+    if (Math.hypot(pageX - start.x, pageY - start.y) > TAP_SLOP) return;
+    toggle();
+  };
+  const onTouchCancel = () => {
+    touchStart.current = null;
+    setPressed(false);
+  };
+
   return (
-    <View style={SHADOW_SOFT} className="gap-3 rounded-lg bg-white p-4">
+    <View
+      onLayout={(e) => {
+        cardY.current = e.nativeEvent.layout.y;
+      }}
+      style={SHADOW_SOFT}
+      className="gap-3 rounded-lg bg-white p-4">
       <View className="flex-row items-start gap-2">
         <Ionicons
           name={item.isCorrect ? 'checkmark-circle' : 'close-circle'}
@@ -558,44 +716,68 @@ function ReviewItemCard({ item, index }: { item: ReviewItem; index: number }) {
         })}
       </View>
 
-      {item.explanation || item.mistakeReason ? (
-        <View className="gap-2">
-          <Pressable
-            onPress={() => setExpanded((v) => !v)}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityState={{ expanded }}
-            accessibilityLabel={t('test.explanation')}
-            className="flex-row items-center gap-1">
-            <Ionicons
-              name={expanded ? 'chevron-down' : 'chevron-forward'}
-              size={18}
-              color={COLORS.blue600}
-            />
-            <Text className="font-bodyBold text-[14px] text-blue-600">{t('test.explanation')}</Text>
-          </Pressable>
-          {expanded ? (
-            <View className="gap-2">
-              {item.explanation ? (
-                <View className="rounded-md bg-surface-tint p-3">
-                  <MathText value={item.explanation} fontSize={14} color={COLORS.ink700} />
+      {/*
+        The toggle is always offered, even when the backend sent neither an
+        explanation nor a mistake reason: the chevron turning down is the
+        feedback that the press registered, and an expanded card that says so
+        beats a row that silently ignores taps.
+      */}
+      <View
+        className="gap-2"
+        onLayout={(e) => {
+          toggleY.current = e.nativeEvent.layout.y;
+        }}>
+        <Pressable
+          onPress={toggle}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={onTouchCancel}
+          hitSlop={8}
+          pressRetentionOffset={PRESS_RETENTION}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          accessibilityLabel={t('test.explanation')}
+          // Padded into a full-width row so the target is a comfortable height
+          // rather than the 18px chevron; the negative margin keeps the label
+          // visually aligned with the card's other content.
+          className={`-mx-2 flex-row items-center gap-1 rounded-md px-2 py-2 ${
+            pressed ? 'bg-surface-tint' : ''
+          }`}>
+          <Ionicons
+            name={expanded ? 'chevron-down' : 'chevron-forward'}
+            size={18}
+            color={COLORS.blue600}
+          />
+          <Text className="font-bodyBold text-[14px] text-blue-600">{t('test.explanation')}</Text>
+        </Pressable>
+        {expanded ? (
+          <View className="gap-2">
+            {explanation ? (
+              <View className="rounded-md bg-surface-tint p-3">
+                <MathText value={explanation} fontSize={14} color={COLORS.ink700} />
+              </View>
+            ) : null}
+            {mistakeReason ? (
+              <View className="flex-row gap-2 rounded-md bg-[#FDECEC] p-3">
+                <Ionicons name="alert-circle-outline" size={18} color={DANGER} />
+                <View className="flex-1">
+                  <Text className="mb-0.5 font-bodyBold text-[12px] uppercase tracking-[0.5px] text-[#E5484D]">
+                    {t('test.likelyMistake')}
+                  </Text>
+                  <MathText value={mistakeReason} fontSize={14} color={COLORS.ink700} />
                 </View>
-              ) : null}
-              {item.mistakeReason ? (
-                <View className="flex-row gap-2 rounded-md bg-[#FDECEC] p-3">
-                  <Ionicons name="alert-circle-outline" size={18} color={DANGER} />
-                  <View className="flex-1">
-                    <Text className="mb-0.5 font-bodyBold text-[12px] uppercase tracking-[0.5px] text-[#E5484D]">
-                      {t('test.likelyMistake')}
-                    </Text>
-                    <MathText value={item.mistakeReason} fontSize={14} color={COLORS.ink700} />
-                  </View>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+              </View>
+            ) : null}
+            {!explanation && !mistakeReason ? (
+              <View className="rounded-md bg-surface-tint p-3">
+                <Text className="text-[14px] leading-6 text-ink-500">
+                  {t('test.noExplanation')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }

@@ -194,6 +194,7 @@
     "review": "Разбор",
     "reviewLoadError": "Не удалось загрузить разбор. Попробуй ещё раз.",
     "explanation": "Пояснение",
+    "noExplanation": "Для этого вопроса пояснения пока нет.",
     "likelyMistake": "Возможная ошибка",
     "questions": "Вопросы",
     "questionsList": "Список вопросов",

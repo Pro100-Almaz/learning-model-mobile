@@ -194,6 +194,7 @@
     "review": "Шолу",
     "reviewLoadError": "Шолуды жүктеу мүмкін болмады. Қайталап көр.",
     "explanation": "Түсіндірме",
+    "noExplanation": "Бұл сұраққа түсіндірме әзірге жоқ.",
     "likelyMistake": "Ықтимал қате",
     "questions": "Сұрақтар",
     "questionsList": "Сұрақтар тізімі",

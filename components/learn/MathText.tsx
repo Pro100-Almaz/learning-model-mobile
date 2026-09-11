@@ -1,6 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+
+// Module-level so these prop identities never change between renders. Every
+// prop update on the WebView reloads the page (see the note in MathText), so
+// the component must hand it the exact same objects on every render.
+const ORIGIN_WHITELIST = ['*'];
+const WEBVIEW_STYLE = { flex: 1, backgroundColor: 'transparent' } as const;
 
 interface MathTextProps {
   /** Text that may contain inline `$...$` or block `$$...$$` LaTeX. */
@@ -24,11 +30,12 @@ function hasMath(text: string): boolean {
   return text.includes('$');
 }
 
-function buildHtml(value: string, fontSize: number, color: string, bold: boolean): string {
-  // Embed the raw string as a JS literal and set it via textContent so LaTeX
-  // backslashes and HTML-special chars survive untouched; KaTeX then renders
-  // the delimited spans in place.
-  const payload = JSON.stringify(value);
+/**
+ * The page shell. Deliberately free of the text it will display: the shell is
+ * loaded once per MathText instance and the prompt is pushed in afterwards with
+ * `window.setContent`, so changing question never reloads the page.
+ */
+function buildShell(fontSize: number, color: string, bold: boolean): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -56,7 +63,6 @@ function buildHtml(value: string, fontSize: number, color: string, bold: boolean
 <script src="${KATEX_BASE}/contrib/auto-render.min.js"></script>
 <script>
   var el = document.getElementById('c');
-  el.textContent = ${payload};
 
   function post(type, height) {
     if (window.ReactNativeWebView) {
@@ -69,7 +75,11 @@ function buildHtml(value: string, fontSize: number, color: string, bold: boolean
   }
   function report(type) { post(type || 'height', measure()); }
 
-  function run() {
+  // Swap the displayed text in place. Assigning textContent first keeps LaTeX
+  // backslashes and HTML-special chars untouched; KaTeX then renders the
+  // delimited spans. Called by RN on mount and on every later value change.
+  window.setContent = function (text) {
+    el.textContent = text;
     if (!window.renderMathInElement) {
       // KaTeX failed to load (e.g. offline) — tell RN to fall back to plain text.
       post('fallback', measure());
@@ -84,21 +94,24 @@ function buildHtml(value: string, fontSize: number, color: string, bold: boolean
         throwOnError: false,
       });
     } catch (e) {}
-
-    // Report now, again after web-fonts settle, and on any later reflow.
     report('ready');
+  };
+
+  function boot() {
+    // Report reflows that happen after the initial render (web fonts landing,
+    // a formula wrapping differently). Registered once, not per content swap.
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () { report('height'); });
     }
     if (window.ResizeObserver) {
       new ResizeObserver(function () { report('height'); }).observe(el);
     }
-    setTimeout(function () { report('height'); }, 300);
+    post('shell-ready', measure());
   }
 
-  if (window.renderMathInElement) run();
+  if (window.renderMathInElement) boot();
   else {
-    window.addEventListener('load', run);
+    window.addEventListener('load', boot);
     // If scripts never arrive, give up and fall back after a short grace period.
     setTimeout(function () { if (!window.renderMathInElement) post('fallback', measure()); }, 4000);
   }
@@ -115,6 +128,15 @@ function buildHtml(value: string, fontSize: number, color: string, bold: boolean
  * The WebView is wrapped with `pointerEvents="none"` so it's purely display —
  * vertical drags reach the parent ScrollView and taps reach the option row,
  * rather than being swallowed by the web content.
+ *
+ * Every prop update reloads this WebView, and a reload blanks the text and
+ * re-fetches KaTeX. That made the naive shape — HTML rebuilt from `value`,
+ * inline `style`, height pushed back from the page — flicker forever: the page
+ * reported its plain-text height, the re-render reloaded it, it reported its
+ * rendered height, and round it went. So the WebView's props are frozen after
+ * mount: a constant `style`, a `source` that depends only on the typography,
+ * and a stable `onMessage`. Height and fade live on the wrapper View, and new
+ * text is injected rather than re-sourced.
  */
 export function MathText({
   value,
@@ -123,15 +145,65 @@ export function MathText({
   bold = false,
   plainClassName,
 }: MathTextProps) {
-  const [height, setHeight] = useState(Math.ceil(fontSize * 1.45));
+  // Height of the same string laid out by RN as ordinary text. It is available
+  // on the first layout pass, long before the WebView can report anything, and
+  // it is close to the final rendered height because it's the same words at the
+  // same size. Without it the row starts one line tall and leaps to full height
+  // when KaTeX reports — which shifts every card below it, so anything the
+  // reader was aiming at moves out from under their finger.
+  const [plainHeight, setPlainHeight] = useState(0);
+  const [webHeight, setWebHeight] = useState(0);
   const [ready, setReady] = useState(false);
   // Set if KaTeX can't load — render the raw string as plain text instead.
   const [failed, setFailed] = useState(false);
+  const [shellReady, setShellReady] = useState(false);
+  const webRef = useRef<WebView>(null);
 
   const isMath = useMemo(() => hasMath(value), [value]);
-  const html = useMemo(
-    () => (isMath ? buildHtml(value, fontSize, color, bold) : ''),
-    [isMath, value, fontSize, color, bold]
+  const shell = useMemo(
+    () => (isMath ? buildShell(fontSize, color, bold) : ''),
+    [isMath, fontSize, color, bold]
+  );
+  const source = useMemo(() => ({ html: shell }), [shell]);
+
+  // Push the text in once the shell is up, and again whenever it changes. This
+  // is what makes moving to the next question cheap: no reload, no CDN round
+  // trip, no blank frame — just a textContent swap and a re-measure.
+  useEffect(() => {
+    if (!shellReady) return;
+    webRef.current?.injectJavaScript(`window.setContent(${JSON.stringify(value)}); true;`);
+  }, [value, shellReady]);
+
+  // Ignore sub-pixel re-measurements so a reflow that changes nothing visible
+  // doesn't churn the layout.
+  const applyHeight = useCallback((next: number) => {
+    setWebHeight((prev) => (Math.abs(prev - next) > 1 ? next : prev));
+  }, []);
+
+  // Never shrink below the plain-text height: KaTeX only ever needs the same
+  // room or a little more, and taking the max means the row can grow slightly
+  // once but never collapse and re-expand.
+  const height = Math.max(plainHeight, webHeight) || Math.ceil(fontSize * 1.45);
+
+  const onMessage = useCallback(
+    (e: WebViewMessageEvent) => {
+      try {
+        const msg = JSON.parse(e.nativeEvent.data) as { type: string; height: number };
+        if (msg.type === 'fallback') {
+          setFailed(true);
+          return;
+        }
+        if (Number.isFinite(msg.height) && msg.height > 0) applyHeight(msg.height);
+        if (msg.type === 'shell-ready') {
+          setShellReady(true);
+          return;
+        }
+        if (msg.type === 'ready' || msg.type === 'height') setReady(true);
+      } catch {
+        // ignore malformed messages
+      }
+    },
+    [applyHeight]
   );
 
   const plain = !isMath || failed;
@@ -146,30 +218,43 @@ export function MathText({
   }
 
   return (
+    // Height and the fade-in live here, on a plain RN View, so they never touch
+    // the WebView's props.
     <View pointerEvents="none" style={{ height, width: '100%' }}>
-      <WebView
-        originWhitelist={['*']}
-        source={{ html }}
-        scrollEnabled={false}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        // Transparent so the card/background shows through; fade in once laid
-        // out to avoid a flash of clipped/unstyled content.
-        style={{ backgroundColor: 'transparent', height, opacity: ready ? 1 : 0 }}
-        onMessage={(e) => {
-          try {
-            const msg = JSON.parse(e.nativeEvent.data) as { type: string; height: number };
-            if (msg.type === 'fallback') {
-              setFailed(true);
-              return;
-            }
-            if (Number.isFinite(msg.height) && msg.height > 0) setHeight(msg.height);
-            if (msg.type === 'ready' || msg.type === 'height') setReady(true);
-          } catch {
-            // ignore malformed messages
-          }
-        }}
-      />
+      {/*
+        Absolutely positioned so it measures without driving layout. It doubles
+        as what the reader sees while KaTeX is still loading — the raw `$…$` is
+        less pretty than the rendered math but it beats a blank gap, and it sits
+        at the same size, so the swap to the rendered version barely moves.
+      */}
+      <Text
+        onLayout={(e) => setPlainHeight(Math.ceil(e.nativeEvent.layout.height))}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          fontSize,
+          color,
+          lineHeight: Math.ceil(fontSize * 1.45),
+          fontWeight: bold ? '700' : '400',
+          opacity: ready ? 0 : 1,
+        }}>
+        {value}
+      </Text>
+      <View
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, height, opacity: ready ? 1 : 0 }}>
+        <WebView
+          ref={webRef}
+          originWhitelist={ORIGIN_WHITELIST}
+          source={source}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          style={WEBVIEW_STYLE}
+          onMessage={onMessage}
+        />
+      </View>
     </View>
   );
 }

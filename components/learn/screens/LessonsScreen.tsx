@@ -1,6 +1,6 @@
 import { FlatList, View } from "react-native";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabBarOverlap } from "@/hooks/useTabBarOverlap";
 import { useTranslation } from "react-i18next";
 import type { Lesson, Module } from "@/lib/learn";
 import { type BreadcrumbItem } from "../Breadcrumb";
@@ -38,7 +38,7 @@ export function LessonsScreen({
   onTest,
 }: LessonsScreenProps) {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarOverlap = useTabBarOverlap();
   const { t } = useTranslation();
 
   return (
@@ -63,7 +63,7 @@ export function LessonsScreen({
           contentContainerStyle={{
             padding: 16,
             gap: 14,
-            paddingBottom: tabBarHeight + 84,
+            paddingBottom: tabBarOverlap + 84,
           }}
           showsVerticalScrollIndicator={false}
           // Android/Fabric: clipped-child bookkeeping desyncs when the list

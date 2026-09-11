@@ -1,8 +1,8 @@
 import { Text, View } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 
 import { PressableScale } from '@/components/onboarding/PressableScale';
+import { useTabBarOverlap } from '@/hooks/useTabBarOverlap';
 import { SHADOW_CTA } from '@/lib/onboarding-theme';
 
 interface StickyActionsProps {
@@ -18,12 +18,12 @@ interface StickyActionsProps {
  */
 export function StickyActions({ onTest }: StickyActionsProps) {
   const { t } = useTranslation();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarOverlap = useTabBarOverlap();
 
   return (
     <View
       className="absolute inset-x-0 bottom-0 border-t border-line-200 bg-surface-app px-4 pt-3"
-      style={{ paddingBottom: tabBarHeight + 12 }}>
+      style={{ paddingBottom: tabBarOverlap + 12 }}>
       <PressableScale
         activeScale={0.98}
         accessibilityRole="button"

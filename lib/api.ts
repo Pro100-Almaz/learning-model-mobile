@@ -178,8 +178,15 @@ export function createApiClient(getToken: GetToken, language?: string): ApiClien
       res = await fetch(`${BASE_URL}${path}`, {
         ...init,
         signal: controller.signal,
+        // Nothing this client returns may come from a cache. react-query is
+        // configured to keep no data (see app/_layout.tsx), so the platform HTTP
+        // cache — OkHttp on Android, NSURLCache on iOS — is the only layer left
+        // that could hand a screen a stale 200 for a repeated GET.
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
           // Content negotiation: tell the backend which language to serve
           // content in. Bound to the active i18n language (see
           // hooks/useApiClient.ts) so switching language refetches everything.

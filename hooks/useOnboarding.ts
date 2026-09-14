@@ -1,4 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useFreshQuery } from './useFreshQuery';
 import { useApiClient } from './useApiClient';
 import { profileQueryKey } from './useProfile';
 import {
@@ -10,7 +12,7 @@ import type { OnboardingOptions, Profile, ProfileUpdate } from '@/lib/types';
 /** Select options for the onboarding flow (GET /profile/onboarding-options/). */
 export function useOnboardingOptions() {
   const api = useApiClient();
-  return useQuery({
+  return useFreshQuery({
     queryKey: ['onboarding-options'],
     queryFn: DEV_BYPASS_AUTH
       ? async () => MOCK_ONBOARDING_OPTIONS

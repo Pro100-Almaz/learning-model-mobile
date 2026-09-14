@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useFreshQuery } from "./useFreshQuery";
 
 import { useApiClient } from "./useApiClient";
 import { toLessonItem, type NextLessonApi } from "@/lib/home";
@@ -43,7 +43,7 @@ function toLesson(r: LessonApi): Lesson {
 /** Lessons for a module, in order. */
 export function useLessons(moduleId: string) {
   const api = useApiClient();
-  return useQuery({
+  return useFreshQuery({
     queryKey: [moduleId, "lessons"],
     queryFn: async () => {
       const raw = await api.get<LessonApi[]>(`/modules/${moduleId}/`);
@@ -57,7 +57,7 @@ export const nextLessonsQueryKey = ["lessons", "next"] as const;
 export function useNextLessons() {
   const api = useApiClient();
   const { language } = useLanguage();
-  return useQuery({
+  return useFreshQuery({
     queryKey: [...nextLessonsQueryKey, language],
     queryFn: async () => {
       const raw = await api.get<NextLessonApi[]>("/lessons/next_lessons/");
@@ -69,7 +69,7 @@ export function useNextLessons() {
 /** A single lesson with its content (description, video, concept tags). */
 export function useLessonDetail(lessonId: string) {
   const api = useApiClient();
-  return useQuery({
+  return useFreshQuery({
     queryKey: [lessonId, "lesson-detail"],
     queryFn: async () => {
       const r = await api.get<LessonDetailApi>(`/lessons/${lessonId}/`);

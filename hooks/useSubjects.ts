@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useFreshQuery } from './useFreshQuery';
 
 import { useApiClient } from './useApiClient';
 import { type Progress } from '@/lib/learn';
@@ -20,7 +20,7 @@ export interface SubjectApi {
 export function useSubjects() {
   const api = useApiClient();
   const { language } = useLanguage();
-  return useQuery({
+  return useFreshQuery({
     queryKey: [...subjectsQueryKey, language],
     queryFn: async () => {
           const raw = await api.get<SubjectApi[]>('/subjects/');
@@ -32,7 +32,7 @@ export function useSubjects() {
 export function useAllSubjects() {
   const api = useApiClient();
   const { language } = useLanguage();
-  return useQuery({
+  return useFreshQuery({
     queryKey: [...allSubjectsQueryKey, language],
     queryFn: async () => {
           const raw = await api.get<SubjectApi[]>('/subjects/all/');

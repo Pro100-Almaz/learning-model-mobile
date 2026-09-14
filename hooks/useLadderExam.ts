@@ -15,18 +15,17 @@ const NEXT_PATH = '/roadmap/chapter/ladder/next/';
  * Starts a fresh ladder session for a module (POST .../ladder/start/, no body)
  * and returns the first question. Like {@link useTestAttempt}, this creates
  * server-side state, so it must run exactly once per screen open — never replay
- * a stale session from cache. `gcTime: 0` drops the result on unmount so
- * re-entering starts a new session; focus/reconnect refetches are disabled so a
- * background refresh can't silently spawn a second session. A disabled ladder
- * surfaces as a 409 (`code: "ladder_disabled"`) the caller can special-case.
+ * a stale session from cache. The global `gcTime: 0` drops the result on unmount
+ * so re-entering starts a new session, and this is one of the few reads that
+ * skips `useFreshQuery`: focus/reconnect refetches stay off so a background
+ * refresh can't silently spawn a second session. A disabled ladder surfaces as
+ * a 409 (`code: "ladder_disabled"`) the caller can special-case.
  */
 export function useStartLadder(chapterId: string | number | undefined) {
   const api = useApiClient();
   return useQuery({
     queryKey: ['ladder-start', chapterId],
     enabled: chapterId != null,
-    staleTime: 0,
-    gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,

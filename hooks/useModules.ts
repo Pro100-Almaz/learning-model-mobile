@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useFreshQuery } from "./useFreshQuery";
 
 import { useApiClient } from "./useApiClient";
 import { type Progress } from "@/lib/learn";
@@ -17,7 +17,7 @@ export interface ModuleApi {
 
 export function useModules(classId: string | undefined) {
   const api = useApiClient();
-  return useQuery({
+  return useFreshQuery({
     enabled: !!classId,
     queryKey: [classId, "modules"],
     queryFn: async () => {

@@ -6,10 +6,12 @@ import { useRouter } from 'expo-router';
 /**
  * Signs the user out and returns them to /login.
  *
- * Clearing the react-query cache matters: the queryClient is a module-level
- * singleton (staleTime 1h), so without it the next sign-in could briefly render
- * the previous user's cached profile/dashboard. `finally` guarantees we leave
- * the authenticated area even if `signOut` throws (e.g. offline).
+ * Clearing the react-query cache matters even though nothing is stored past a
+ * screen's lifetime: the queryClient is a module-level singleton, so entries
+ * still observed by screens mounted at sign-out time would otherwise survive
+ * into the next session and briefly render the previous user's profile.
+ * `finally` guarantees we leave the authenticated area even if `signOut` throws
+ * (e.g. offline).
  */
 export function useSignOut(): () => Promise<void> {
   const { signOut } = useAuth();

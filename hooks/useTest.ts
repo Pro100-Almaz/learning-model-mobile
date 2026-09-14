@@ -19,11 +19,14 @@ const reviewPath = (attemptId: number) => `/attempts/${attemptId}/review/`;
 /**
  * Starts a fresh test attempt for a lesson (POST /attempts/). Since this creates
  * a new attempt server-side, it must run once per screen open — never replay a
- * stale started/finished attempt from cache. `gcTime: 0` drops the result the
- * moment the screen unmounts, so re-entering the test starts a new attempt;
- * within a single mount the observer stays put, so navigating back from the
- * review does NOT create another attempt. Window-focus / reconnect refetches are
- * disabled to avoid spawning duplicate attempts mid-session.
+ * stale started/finished attempt from cache, and never fire a *second* time
+ * while the screen is open. The global `gcTime: 0` drops the result the moment
+ * the screen unmounts, so re-entering the test starts a new attempt; within a
+ * single mount the observer stays put, so navigating back from the review does
+ * NOT create another attempt.
+ *
+ * This is the one family of reads that deliberately skips `useFreshQuery`:
+ * refetching on focus/reconnect would spawn duplicate attempts mid-session.
  */
 export function useTestAttempt(lessonId: string | number | undefined) {
   const api = useApiClient();
@@ -31,8 +34,6 @@ export function useTestAttempt(lessonId: string | number | undefined) {
   return useQuery({
     queryKey: ["test-attempt-lesson", lessonId],
     enabled: lessonId != null,
-    staleTime: 0,
-    gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
@@ -58,7 +59,10 @@ export function useSubmitAnswer() {
 /**
  * Fetches the reviewed answer key for a submitted attempt (per-question correct
  * option + explanation). Only enabled once `enabled` flips true, so the request
- * fires when the user opens the review — not on the results screen itself.
+ * fires when the user opens the review — not on the results screen itself, and
+ * again if they close and reopen it. Like {@link useTestAttempt} this stays on
+ * plain `useQuery`: it belongs to the attempt the screen is already holding, so
+ * a focus refetch would add nothing.
  */
 export function useTestReview(
   attemptId: number | undefined,
@@ -68,7 +72,6 @@ export function useTestReview(
   return useQuery({
     queryKey: ["test-review", attemptId],
     enabled: enabled && attemptId != null,
-    staleTime: Infinity,
     queryFn: async () => {
       const raw = await api.get<TestReviewApi>(reviewPath(attemptId!));
       return toTestReview(raw);

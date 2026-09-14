@@ -3,14 +3,14 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { ActivityIndicator, LogBox } from 'react-native';
+import { ActivityIndicator, AppState, LogBox, type AppStateStatus } from 'react-native';
 import 'react-native-reanimated';
 import '@/global.css';
 import '@/lib/i18n';
 
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@/utils/cache';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api';
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -36,7 +36,17 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // No backend data is *stored*. Every screen refetches what it shows each
+      // time it opens, so react-query is a request state machine here, not a
+      // cache: `gcTime: 0` drops an entry as soon as its last observer
+      // unmounts, and `refetchOnMount: 'always'` means a re-opened screen can
+      // never paint the previous visit's data. Screens that stay mounted (tabs)
+      // also refetch on focus — see hooks/useFreshQuery.ts, which every
+      // backend-reading hook goes through. Only local preferences (UI language)
+      // are persisted, in MMKV (lib/i18n).
       staleTime: 0,
+      gcTime: 0,
+      refetchOnMount: 'always',
       // Don't hammer the backend on client errors (401/403/404/429 etc.) — an
       // auth failure like "could not resolve user" is not transient, so retrying
       // just spams the endpoint. Retry only genuine transient failures (network
@@ -50,6 +60,17 @@ const queryClient = new QueryClient({
       },
     },
   },
+});
+
+// react-query's "window focus" concept has no wiring in React Native, so
+// without this an app that sat in the background for an hour comes back showing
+// the numbers it had when it left. AppState is the mobile equivalent: going
+// active marks every mounted query for a refetch. The two queries that create
+// server-side state (useTestAttempt / useStartLadder) opt out with
+// `refetchOnWindowFocus: false` so returning to the app can't start a second
+// attempt or ladder session.
+AppState.addEventListener('change', (status: AppStateStatus) => {
+  focusManager.setFocused(status === 'active');
 });
 
 export const unstable_settings = {

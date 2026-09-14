@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useFreshQuery } from './useFreshQuery';
 
 import { useApiClient } from './useApiClient';
 import { type Progress } from '@/lib/learn';
@@ -17,7 +17,7 @@ interface ClassLevelApi {
 export function useClasses(subjectId: string | undefined) {
   const api = useApiClient();
   const { language } = useLanguage();
-  return useQuery({
+  return useFreshQuery({
     enabled: !!subjectId,
     queryKey: [subjectId, 'classes', language],
     queryFn: async () => {

@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useFreshQuery } from './useFreshQuery';
 import { useTranslation } from 'react-i18next';
 
 import { useApiClient } from './useApiClient';
@@ -51,7 +53,7 @@ export function useFriends() {
   const { t, i18n } = useTranslation();
   const language = i18n.resolvedLanguage;
 
-  return useQuery({
+  return useFreshQuery({
     queryKey: friendsQueryKey(profileId, language),
     enabled: profileId != null,
     queryFn: DEV_BYPASS_AUTH
@@ -72,7 +74,7 @@ export function useFriendRequests(direction: RequestDirection) {
   const { t, i18n } = useTranslation();
   const language = i18n.resolvedLanguage;
 
-  return useQuery({
+  return useFreshQuery({
     queryKey: friendRequestsQueryKey(profileId, direction, language),
     enabled: profileId != null,
     queryFn: DEV_BYPASS_AUTH

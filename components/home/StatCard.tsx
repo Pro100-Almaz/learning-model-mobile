@@ -48,11 +48,15 @@ export function StatCard({
 
   return (
     <View style={[SHADOW_SOFT, style]} className="flex-1 gap-1.5 rounded-lg bg-white p-[18px]">
-      <View className="flex-row items-start justify-between">
-        <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-ink-500">
+      {/* Fixed-height row so the icon tile sits in the same spot on every card,
+          however long the label is, and the values below stay aligned. */}
+      <View className="h-[38px] flex-row items-center gap-2">
+        <Text
+          numberOfLines={2}
+          className="flex-1 font-bodyBold text-[11px] leading-[14px] uppercase tracking-[1.5px] text-ink-500">
           {label}
         </Text>
-        <View className="h-[38px] w-[38px] items-center justify-center rounded-md bg-blue-50">
+        <View className="h-[38px] w-[38px] shrink-0 items-center justify-center rounded-md bg-blue-50">
           <Ionicons name={icon} size={20} color={COLORS.blue600} />
         </View>
       </View>
